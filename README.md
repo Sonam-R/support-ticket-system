@@ -32,6 +32,7 @@ Full-stack support ticket management application with JWT authentication, role-b
 support-ticket-system/
 ├── README.md                    # This file
 ├── candidate-info.md            # Submission metadata
+├── tool-workflow.md             # AI tool workflow summary (submission)
 ├── requirements-analysis.md     # Functional & non-functional requirements
 ├── acceptance-criteria.md       # Feature verification checklist
 ├── implementation-plan.md       # Development phases
@@ -41,19 +42,25 @@ support-ticket-system/
 ├── ui-flow.md                   # Frontend navigation flows
 ├── test-strategy.md             # Testing approach
 ├── test-results.md              # Latest test run results
-├── debugging-notes.md             # Issues encountered and fixes
+├── debugging-notes.md           # Issues encountered and fixes
 ├── code-review-notes.md         # Review findings
 ├── review-fixes.md              # Post-review improvements
 ├── reflection.md                # Project retrospective
 ├── pr-description.md            # Pull request summary
 ├── final-ai-usage-summary.md    # AI-assisted development overview
 ├── submission-checklist.md      # Final submission checklist
-├── ai-prompts/                    # AI prompt history by phase
-├── tool-specific/cursor-workflow/  # Cursor IDE workflow docs
-├── backend/                     # Express API (layered architecture)
-├── frontend/                    # React UI
-├── prisma/                      # Schema, migrations, seed
-├── database/                    # Pointer to Prisma database assets
+├── ai-prompts/                  # AI prompt history by phase
+├── tool-specific/cursor-workflow/  # Detailed Cursor IDE workflow docs
+├── backend/                     # Express API — maps to template src/ + tests/
+│   ├── src/                     # API source code
+│   └── tests/                   # Backend integration & unit tests
+├── frontend/                    # React UI — maps to template src/
+│   └── src/                     # Frontend source + Vitest tests
+├── database/                    # Database documentation & asset pointers
+│   ├── setup-notes.md
+│   ├── schema-or-migrations/
+│   └── seed-data/
+├── prisma/                      # Prisma schema, migrations, seed (source of truth)
 ├── scripts/                     # Docker entrypoint scripts
 ├── docs/                        # Supplementary documentation
 └── .github/workflows/           # CI pipeline
@@ -195,7 +202,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`:
 
 ## Documentation
 
-See project root markdown files and `ai-prompts/` for development history.
+See project root markdown files, [`tool-workflow.md`](./tool-workflow.md), and `ai-prompts/` for development history.
 
 ## Future Improvements
 

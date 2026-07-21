@@ -31,6 +31,7 @@
 
 - [x] `README.md` — complete with all sections
 - [x] `candidate-info.md`
+- [x] `tool-workflow.md`
 - [x] `requirements-analysis.md`
 - [x] `acceptance-criteria.md`
 - [x] `implementation-plan.md`
@@ -60,6 +61,7 @@
 
 ## Cursor Workflow Documentation
 
+- [x] `tool-workflow.md` (root summary)
 - [x] `tool-specific/cursor-workflow/project-rules.md`
 - [x] `tool-specific/cursor-workflow/reusable-prompts.md`
 - [x] `tool-specific/cursor-workflow/development-workflow.md`
@@ -68,6 +70,9 @@
 
 ## Infrastructure
 
+- [x] `database/setup-notes.md`
+- [x] `database/schema-or-migrations/` (pointers to Prisma)
+- [x] `database/seed-data/` (pointer to seed script)
 - [x] Docker Compose starts all services (`docker compose up --build`)
 - [x] CI pipeline configured (`.github/workflows/ci.yml`)
 - [x] `.env.example` exists with all variables documented

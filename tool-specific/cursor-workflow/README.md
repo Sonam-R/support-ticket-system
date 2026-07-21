@@ -2,6 +2,8 @@
 
 Index of Cursor AI workflow documentation for this project.
 
+**Submission summary:** [`../../tool-workflow.md`](../../tool-workflow.md)
+
 | Document | Description |
 |----------|-------------|
 | [project-rules.md](./project-rules.md) | Constraints, security, and modification rules |
