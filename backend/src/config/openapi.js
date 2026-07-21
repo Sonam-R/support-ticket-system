@@ -47,6 +47,15 @@ const errorResponse = (description, message) => ({
   },
 });
 
+const unauthorizedResponse = errorResponse('Unauthorized', 'Authentication required.');
+const forbiddenResponse = errorResponse('Forbidden', 'You do not have permission to perform this action.');
+
+const withAuthResponses = (responses) => ({
+  ...responses,
+  401: unauthorizedResponse,
+  403: forbiddenResponse,
+});
+
 const successResponse = (schemaRef, example) => ({
   description: 'Successful response',
   content: {
@@ -169,7 +178,8 @@ const openApiSpec = {
       post: {
         tags: ['Tickets'],
         summary: 'Create ticket',
-        description: 'Creates a new support ticket. Status defaults to `OPEN` and priority defaults to `MEDIUM` when omitted.',
+        description:
+          'Creates a new support ticket. Status defaults to `OPEN` and priority defaults to `MEDIUM` when omitted.\n\n**Authorization:** `ADMIN`, `SUPPORT_AGENT`',
         operationId: 'createTicket',
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -188,12 +198,12 @@ const openApiSpec = {
             },
           },
         },
-        responses: {
+        responses: withAuthResponses({
           201: successResponse('#/components/schemas/Ticket', ticketExample),
           400: errorResponse('Validation failed', 'Title must be at least 5 characters'),
           404: errorResponse('Referenced user not found', 'Creator user not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
       get: {
         tags: ['Tickets'],
@@ -325,8 +335,9 @@ const openApiSpec = {
         tags: ['Tickets'],
         summary: 'Update ticket',
         description:
-          'Updates one or more ticket fields. At least one field is required. Status cannot be updated here — use `PATCH /api/tickets/{id}/status`.',
+          'Updates one or more ticket fields. At least one field is required. Status cannot be updated here — use `PATCH /api/tickets/{id}/status`.\n\n**Authorization:** `ADMIN`, `SUPPORT_AGENT`',
         operationId: 'updateTicket',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/TicketId' }],
         requestBody: {
           required: true,
@@ -341,7 +352,7 @@ const openApiSpec = {
             },
           },
         },
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/Ticket', {
             ...ticketExample,
             title: 'Payment declined — card verification required',
@@ -350,30 +361,33 @@ const openApiSpec = {
           400: errorResponse('Validation failed', 'At least one field is required for update'),
           404: errorResponse('Ticket or assignee not found', 'Ticket not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
       delete: {
         tags: ['Tickets'],
         summary: 'Delete ticket',
-        description: 'Permanently deletes a ticket and its related comments, attachments, and history.',
+        description:
+          'Permanently deletes a ticket and its related comments, attachments, and history.\n\n**Authorization:** `ADMIN` only',
         operationId: 'deleteTicket',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/TicketId' }],
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/DeleteTicketResponse', {
             message: 'Ticket deleted successfully',
           }),
           400: errorResponse('Invalid ticket ID', 'Invalid ticket id'),
           404: errorResponse('Ticket not found', 'Ticket not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
     },
     '/api/tickets/{id}/status': {
       patch: {
         tags: ['Tickets'],
         summary: 'Change ticket status',
-        description: `Updates the ticket status following the allowed workflow.\n\n${STATUS_WORKFLOW}`,
+        description: `Updates the ticket status following the allowed workflow.\n\n${STATUS_WORKFLOW}\n\n**Authorization:** \`ADMIN\`, \`SUPPORT_AGENT\``,
         operationId: 'changeTicketStatus',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/TicketId' }],
         requestBody: {
           required: true,
@@ -384,7 +398,7 @@ const openApiSpec = {
             },
           },
         },
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/TicketDetail', {
             ...ticketExample,
             status: 'IN_PROGRESS',
@@ -398,7 +412,7 @@ const openApiSpec = {
           ),
           404: errorResponse('Ticket not found', 'Ticket not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
     },
     '/api/tickets/{ticketId}/history': {
@@ -421,8 +435,9 @@ const openApiSpec = {
       post: {
         tags: ['Comments'],
         summary: 'Add comment',
-        description: 'Adds a comment to an existing ticket.',
+        description: 'Adds a comment to an existing ticket.\n\n**Authorization:** `ADMIN`, `SUPPORT_AGENT`, `VIEWER`',
         operationId: 'addComment',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/TicketIdParam' }],
         requestBody: {
           required: true,
@@ -437,12 +452,12 @@ const openApiSpec = {
             },
           },
         },
-        responses: {
+        responses: withAuthResponses({
           201: successResponse('#/components/schemas/Comment', commentExample),
           400: errorResponse('Validation failed', 'Message is required'),
           404: errorResponse('Ticket or user not found', 'Ticket not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
       get: {
         tags: ['Comments'],
@@ -463,8 +478,9 @@ const openApiSpec = {
         tags: ['Users'],
         summary: 'List users',
         description:
-          'Returns a paginated list of active users. Supports search by name or email, sorting, and optional role filtering.',
+          'Returns a paginated list of active users. Supports search by name or email, sorting, and optional role filtering.\n\n**Authorization:** `ADMIN` only',
         operationId: 'getUsers',
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'page',
@@ -509,7 +525,7 @@ const openApiSpec = {
             example: 'SUPPORT_AGENT',
           },
         ],
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/UserListResponse', {
             users: [userExample],
             pagination: {
@@ -523,13 +539,14 @@ const openApiSpec = {
           }),
           400: errorResponse('Validation failed', 'Invalid role value'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
       post: {
         tags: ['Users'],
         summary: 'Create user',
-        description: 'Creates a new user with the specified name, email, and role.',
+        description: 'Creates a new user with the specified name, email, and role.\n\n**Authorization:** `ADMIN` only',
         operationId: 'createUser',
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -543,12 +560,26 @@ const openApiSpec = {
             },
           },
         },
-        responses: {
+        responses: withAuthResponses({
           201: successResponse('#/components/schemas/User', userExample),
           400: errorResponse('Validation failed', 'Name is required'),
           409: errorResponse('Duplicate email', 'A user with this email already exists'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
+      },
+    },
+    '/api/users/assignable': {
+      get: {
+        tags: ['Users'],
+        summary: 'List assignable users',
+        description:
+          'Returns active users who can be assigned to tickets (`ADMIN` and `SUPPORT_AGENT`).\n\n**Authorization:** `ADMIN`, `SUPPORT_AGENT`',
+        operationId: 'getAssignableUsers',
+        security: [{ bearerAuth: [] }],
+        responses: withAuthResponses({
+          200: successResponse('#/components/schemas/UserList', [userExample]),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        }),
       },
     },
     '/api/users/{id}': {
@@ -556,10 +587,11 @@ const openApiSpec = {
         tags: ['Users'],
         summary: 'Get user details',
         description:
-          'Returns user information including ticket statistics (assigned and created ticket counts).',
+          'Returns user information including ticket statistics (assigned and created ticket counts).\n\n**Authorization:** `ADMIN` only',
         operationId: 'getUserById',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/UserId' }],
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/UserDetail', {
             ...userExample,
             stats: { assignedTickets: 3, createdTickets: 0 },
@@ -567,13 +599,14 @@ const openApiSpec = {
           400: errorResponse('Validation failed', 'Invalid user id'),
           404: errorResponse('User not found', 'User not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
       patch: {
         tags: ['Users'],
         summary: 'Update user',
-        description: 'Updates one or more user fields. Email must remain unique.',
+        description: 'Updates one or more user fields. Email must remain unique.\n\n**Authorization:** `ADMIN` only',
         operationId: 'updateUser',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/UserId' }],
         requestBody: {
           required: true,
@@ -587,29 +620,30 @@ const openApiSpec = {
             },
           },
         },
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/User', userExample),
           400: errorResponse('Validation failed', 'Invalid user id'),
           404: errorResponse('User not found', 'User not found'),
           409: errorResponse('Duplicate email', 'A user with this email already exists'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
       delete: {
         tags: ['Users'],
         summary: 'Delete user',
         description:
-          'Soft-deletes a user. Assigned tickets are unassigned (`assignedTo = null`). Comments and ticket history are preserved.',
+          'Soft-deletes a user. Assigned tickets are unassigned (`assignedTo = null`). Comments and ticket history are preserved.\n\n**Authorization:** `ADMIN` only',
         operationId: 'deleteUser',
+        security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/UserId' }],
-        responses: {
+        responses: withAuthResponses({
           200: successResponse('#/components/schemas/DeleteUserResponse', {
             message: 'User deleted successfully',
           }),
           400: errorResponse('Validation failed', 'Invalid user id'),
           404: errorResponse('User not found', 'User not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
-        },
+        }),
       },
     },
     '/api/auth/login': {

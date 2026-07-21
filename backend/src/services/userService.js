@@ -104,10 +104,18 @@ const deleteUser = async (id) => {
   await userRepository.softDelete(id);
 };
 
+const getAssignableUsers = async () => {
+  return userRepository.findAll({
+    where: { role: { in: ['ADMIN', 'SUPPORT_AGENT'] } },
+    orderBy: { name: 'asc' },
+  });
+};
+
 module.exports = {
   createUser,
   getUsers,
   getUserById,
   updateUser,
   deleteUser,
+  getAssignableUsers,
 };

@@ -12,7 +12,7 @@ describe('Error Handling', () => {
 
   beforeEach(() => {
     customer = global.getTestCustomer();
-    token = global.getTestCustomerToken();
+    token = global.getTestAgentToken();
   });
 
   describe('validation errors return consistent 400 responses', () => {
@@ -78,7 +78,7 @@ describe('Error Handling', () => {
     });
 
     it('returns 404 for non-existent ticket on DELETE', async () => {
-      const response = await withAuth(token).delete(`/api/tickets/${VALID_UUID}`);
+      const response = await withAuth(global.getTestAdminToken()).delete(`/api/tickets/${VALID_UUID}`);
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({

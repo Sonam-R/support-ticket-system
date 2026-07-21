@@ -9,6 +9,11 @@ export async function getUsers(params = {}) {
   return unwrap(response);
 }
 
+export async function getAssignableUsers() {
+  const response = await api.get('/users/assignable');
+  return unwrap(response);
+}
+
 export async function getUserById(id) {
   const response = await api.get(`/users/${id}`);
   return unwrap(response);

@@ -80,7 +80,7 @@ async function createTicketViaApi(createdById, overrides = {}, token) {
     ...overrides,
   };
 
-  const authToken = token ?? global.getTestCustomerToken();
+  const authToken = token ?? global.getTestAgentToken();
   const response = await withAuth(authToken).post('/api/tickets').send(payload);
   return response;
 }

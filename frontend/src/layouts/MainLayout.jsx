@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { canManageTickets, canManageUsers } from '../utils/permissions.js';
 
 const navLinks = [
   {
@@ -13,11 +14,13 @@ const navLinks = [
     to: '/tickets/create',
     label: 'Create Ticket',
     isActive: (_, { pathname }) => pathname === '/tickets/create',
+    visible: canManageTickets,
   },
   {
     to: '/users',
     label: 'Users',
     isActive: (_, { pathname }) => pathname.startsWith('/users'),
+    visible: canManageUsers,
   },
 ];
 
@@ -30,13 +33,15 @@ function MainLayout() {
     navigate('/login', { replace: true });
   };
 
+  const visibleLinks = navLinks.filter((link) => !link.visible || link.visible(user));
+
   return (
     <div className="app-layout">
       <header className="app-header">
         <div className="app-header-inner">
           <span className="app-logo">Support Desk</span>
           <nav className="app-nav">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}

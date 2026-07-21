@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import * as ticketService from '../services/ticketService.js';
 import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
-import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
+import { useAssignableUsers } from '../hooks/useAssignableUsers.js';
 import StatusActions from '../components/StatusActions.jsx';
 import CommentSection from '../components/CommentSection.jsx';
 import TicketHistory from '../components/TicketHistory.jsx';
@@ -10,6 +11,7 @@ import ErrorMessage from '../components/ErrorMessage.jsx';
 import TicketForm from '../components/TicketForm.jsx';
 import { formatDateTime } from '../utils/format.js';
 import { getStatusClass, getPriorityClass } from '../utils/colors.js';
+import { canManageTickets } from '../utils/permissions.js';
 import {
   STATUS_LABELS,
   PRIORITY_LABELS,
@@ -19,10 +21,13 @@ import {
 function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { tickets, fetchTickets, addComment, updateTicket } = useTickets();
-  const { users: allUsers } = useUsers();
+  const { users: assignableUsers } = useAssignableUsers({
+    autoFetch: canManageTickets(user),
+  });
 
-  const assignableUsers = getAssignableUsers(allUsers);
+  const canEditTicket = canManageTickets(user);
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -206,16 +211,18 @@ function TicketDetails() {
         </div>
 
         <div className="form-actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setIsEditing((prev) => !prev)}
-          >
-            {isEditing ? 'Cancel Edit' : 'Edit Ticket'}
-          </button>
+          {canEditTicket && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setIsEditing((prev) => !prev)}
+            >
+              {isEditing ? 'Cancel Edit' : 'Edit Ticket'}
+            </button>
+          )}
         </div>
 
-        {isEditing && (
+        {canEditTicket && isEditing && (
           <div style={{ marginTop: '1.5rem' }}>
             <ErrorMessage message={updateError} />
             <TicketForm
@@ -230,13 +237,15 @@ function TicketDetails() {
         )}
       </section>
 
-      <StatusActions
-        status={ticket.status}
-        allowedTransitions={ticket.allowedTransitions || []}
-        onStatusChange={handleStatusChange}
-        isChanging={isChangingStatus}
-        error={statusError}
-      />
+      {canEditTicket && (
+        <StatusActions
+          status={ticket.status}
+          allowedTransitions={ticket.allowedTransitions || []}
+          onStatusChange={handleStatusChange}
+          isChanging={isChangingStatus}
+          error={statusError}
+        />
+      )}
 
       <CommentSection
         comments={comments}

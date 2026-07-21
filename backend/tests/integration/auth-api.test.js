@@ -148,7 +148,7 @@ describe('Auth API', () => {
 
     it('allows ticket creation with valid token', async () => {
       const customer = global.getTestCustomer();
-      const token = global.getTestCustomerToken();
+      const token = global.getTestAgentToken();
       const response = await withAuth(token).post('/api/tickets').send({
         title: 'Authorized ticket',
         description: 'Created with valid token',

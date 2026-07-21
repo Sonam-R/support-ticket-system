@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useTickets } from '../hooks/useTickets.js';
-import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
+import { useAssignableUsers } from '../hooks/useAssignableUsers.js';
 import TicketForm from '../components/TicketForm.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 
 function CreateTicket() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { error, createTicket } = useTickets();
-  const { users, loading: usersLoading, error: usersError } = useUsers();
+  const { users: assignableUsers, loading: usersLoading, error: usersError } = useAssignableUsers();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
-
-  const assignableUsers = getAssignableUsers(users);
 
   async function handleSubmit(data) {
     setIsSubmitting(true);
@@ -28,7 +28,7 @@ function CreateTicket() {
     }
   }
 
-  if (usersLoading && users.length === 0) {
+  if (usersLoading && assignableUsers.length === 0) {
     return <p className="loading-message">Loading form...</p>;
   }
 
@@ -46,7 +46,7 @@ function CreateTicket() {
       <section className="panel">
         <TicketForm
           mode="create"
-          users={users}
+          createdById={user?.id}
           assignableUsers={assignableUsers}
           onSubmit={handleSubmit}
           onCancel={() => navigate('/tickets')}

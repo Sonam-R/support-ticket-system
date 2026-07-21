@@ -7,7 +7,7 @@ const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new AppError('Authentication required', 401));
+    return next(new AppError('Authentication required.', 401));
   }
 
   const token = authHeader.slice(7);

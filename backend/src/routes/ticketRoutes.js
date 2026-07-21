@@ -2,7 +2,9 @@ const express = require('express');
 const ticketController = require('../controllers/ticketController');
 const asyncHandler = require('../middleware/asyncHandler');
 const authenticate = require('../middleware/auth');
+const authorize = require('../middleware/authorize');
 const validate = require('../middleware/validate');
+const { TICKET_WRITERS, ADMIN_ONLY } = require('../constants');
 const {
   createTicketSchema,
   updateTicketSchema,
@@ -14,7 +16,13 @@ const {
 
 const router = express.Router();
 
-router.post('/', authenticate, validate(createTicketSchema), asyncHandler(ticketController.createTicket));
+router.post(
+  '/',
+  authenticate,
+  authorize(...TICKET_WRITERS),
+  validate(createTicketSchema),
+  asyncHandler(ticketController.createTicket),
+);
 
 router.get('/', validate(getTicketsQuerySchema), asyncHandler(ticketController.getTickets));
 
@@ -34,6 +42,7 @@ router.get(
 router.put(
   '/:id',
   authenticate,
+  authorize(...TICKET_WRITERS),
   validate(updateTicketSchema),
   asyncHandler(ticketController.updateTicket),
 );
@@ -41,6 +50,7 @@ router.put(
 router.patch(
   '/:id/status',
   authenticate,
+  authorize(...TICKET_WRITERS),
   validate(changeTicketStatusSchema),
   asyncHandler(ticketController.changeTicketStatus),
 );
@@ -48,6 +58,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
+  authorize(...ADMIN_ONLY),
   validate(ticketIdParamSchema),
   asyncHandler(ticketController.deleteTicket),
 );

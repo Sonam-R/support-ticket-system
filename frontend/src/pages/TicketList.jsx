@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useTickets } from '../hooks/useTickets.js';
-import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
+import { useAssignableUsers } from '../hooks/useAssignableUsers.js';
 import { useDebounce } from '../hooks/useDebounce.js';
 import TicketCard from '../components/TicketCard.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
+import { canManageTickets } from '../utils/permissions.js';
 import {
   TICKET_STATUS,
   TICKET_LIST_PRIORITY,
@@ -20,8 +22,11 @@ const SEARCH_DEBOUNCE_MS = 400;
 
 function TicketList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { tickets, pagination, loading, error, fetchTickets } = useTickets();
-  const { users } = useUsers();
+  const { users: assignableUsers } = useAssignableUsers({
+    autoFetch: canManageTickets(user),
+  });
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
@@ -31,7 +36,20 @@ function TicketList() {
   const [order, setOrder] = useState('desc');
   const [page, setPage] = useState(DEFAULT_PAGE);
 
-  const assigneeUsers = getAssignableUsers(users);
+  const assigneeUsers = useMemo(() => {
+    if (canManageTickets(user)) {
+      return assignableUsers;
+    }
+
+    const assigneesById = tickets.reduce((acc, ticket) => {
+      if (ticket.assignedTo) {
+        acc[ticket.assignedTo.id] = ticket.assignedTo;
+      }
+      return acc;
+    }, {});
+
+    return Object.values(assigneesById).sort((a, b) => a.name.localeCompare(b.name));
+  }, [assignableUsers, tickets, user]);
 
   const debouncedSearch = useDebounce(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -80,13 +98,15 @@ function TicketList() {
           <h1 className="page-title">Tickets</h1>
           <p className="page-subtitle">Manage and track all support tickets</p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => navigate('/tickets/create')}
-        >
-          Create Ticket
-        </button>
+        {canManageTickets(user) && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => navigate('/tickets/create')}
+          >
+            Create Ticket
+          </button>
+        )}
       </div>
 
       <div className="filters">
@@ -204,13 +224,15 @@ function TicketList() {
         <div className="empty-message">
           <h3>No tickets found</h3>
           <p>Try adjusting your search or filters, or create a new ticket.</p>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => navigate('/tickets/create')}
-          >
-            Create Ticket
-          </button>
+          {canManageTickets(user) && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => navigate('/tickets/create')}
+            >
+              Create Ticket
+            </button>
+          )}
         </div>
       ) : (
         <div>

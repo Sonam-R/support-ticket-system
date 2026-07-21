@@ -6,7 +6,7 @@ describe('Ticket API Validation', () => {
 
   beforeEach(() => {
     customer = global.getTestCustomer();
-    token = global.getTestCustomerToken();
+    token = global.getTestAgentToken();
   });
 
   describe('POST /api/tickets validation', () => {

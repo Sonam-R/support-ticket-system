@@ -6,7 +6,7 @@ describe('Edge Cases', () => {
 
   beforeEach(() => {
     customer = global.getTestCustomer();
-    token = global.getTestCustomerToken();
+    token = global.getTestAgentToken();
   });
 
   describe('ticket creation edge cases', () => {
@@ -124,7 +124,7 @@ describe('Edge Cases', () => {
     });
 
     it('returns 400 for malformed ticket id on DELETE', async () => {
-      const response = await withAuth(token).delete('/api/tickets/not-a-uuid');
+      const response = await withAuth(global.getTestAdminToken()).delete('/api/tickets/not-a-uuid');
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);

@@ -6,7 +6,7 @@ describe('Ticket API', () => {
 
   beforeEach(() => {
     customer = global.getTestCustomer();
-    token = global.getTestCustomerToken();
+    token = global.getTestAgentToken();
   });
 
   describe('POST /api/tickets', () => {
@@ -343,7 +343,7 @@ describe('Ticket API', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const deleteResponse = await withAuth(token).delete(`/api/tickets/${ticketId}`);
+      const deleteResponse = await withAuth(global.getTestAdminToken()).delete(`/api/tickets/${ticketId}`);
 
       expect(deleteResponse.status).toBe(200);
       expect(deleteResponse.body).toEqual({

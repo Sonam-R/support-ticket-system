@@ -15,7 +15,7 @@ describe('Ticket History API', () => {
   beforeEach(() => {
     customer = global.getTestCustomer();
     agent = global.getTestAgent();
-    token = global.getTestCustomerToken();
+    token = global.getTestAgentToken();
   });
 
   async function createTicket(overrides = {}) {

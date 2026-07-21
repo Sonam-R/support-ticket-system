@@ -30,6 +30,7 @@ function TicketForm({
   initialData = {},
   users = [],
   assignableUsers,
+  createdById,
   onSubmit,
   onCancel,
   isSubmitting = false,
@@ -37,6 +38,7 @@ function TicketForm({
   const isEdit = mode === 'edit';
   const schema = isEdit ? editSchema : createSchema;
   const assignees = assignableUsers ?? users;
+  const useFixedCreator = Boolean(createdById);
 
   const {
     register,
@@ -49,13 +51,17 @@ function TicketForm({
       description: initialData.description || '',
       category: initialData.category || '',
       priority: initialData.priority || 'MEDIUM',
-      createdById: initialData.createdById || '',
+      createdById: createdById || initialData.createdById || '',
       assignedTo: initialData.assignedTo?.id || '',
     },
   });
 
   function handleFormSubmit(data) {
     const payload = { ...data };
+
+    if (useFixedCreator) {
+      payload.createdById = createdById;
+    }
 
     if (payload.assignedTo === '') {
       payload.assignedTo = null;
@@ -66,6 +72,7 @@ function TicketForm({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
+      {useFixedCreator && <input type="hidden" {...register('createdById')} />}
       <div className="form-group">
         <label htmlFor="title">Title</label>
         <input
@@ -143,7 +150,7 @@ function TicketForm({
         </select>
       </div>
 
-      {!isEdit && (
+      {!isEdit && !useFixedCreator && (
         <div className="form-group">
           <label htmlFor="createdById">Created By</label>
           <select

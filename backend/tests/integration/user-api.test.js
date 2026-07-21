@@ -68,7 +68,7 @@ describe('Users API', () => {
   });
 
   it('returns paginated users', async () => {
-    const response = await api().get('/api/users');
+    const response = await withAuth(adminToken).get('/api/users');
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -94,14 +94,14 @@ describe('Users API', () => {
     const uniqueName = `Searchable-${Date.now()}`;
     await createTestUser({ name: uniqueName, email: `search-${Date.now()}@example.com` });
 
-    const response = await api().get(`/api/users?search=${encodeURIComponent(uniqueName)}`);
+    const response = await withAuth(adminToken).get(`/api/users?search=${encodeURIComponent(uniqueName)}`);
 
     expect(response.status).toBe(200);
     expect(response.body.data.users.some((user) => user.name === uniqueName)).toBe(true);
   });
 
   it('supports pagination and sorting', async () => {
-    const response = await api().get('/api/users?page=1&limit=1&sortBy=name&order=asc');
+    const response = await withAuth(adminToken).get('/api/users?page=1&limit=1&sortBy=name&order=asc');
 
     expect(response.status).toBe(200);
     expect(response.body.data.users).toHaveLength(1);
@@ -115,14 +115,14 @@ describe('Users API', () => {
       email: `filter-agent-${Date.now()}@example.com`,
     });
 
-    const response = await api().get('/api/users?role=SUPPORT_AGENT');
+    const response = await withAuth(adminToken).get('/api/users?role=SUPPORT_AGENT');
 
     expect(response.status).toBe(200);
     expect(response.body.data.users.every((user) => user.role === 'SUPPORT_AGENT')).toBe(true);
   });
 
   it('rejects invalid role filter', async () => {
-    const response = await api().get('/api/users?role=INVALID');
+    const response = await withAuth(adminToken).get('/api/users?role=INVALID');
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
@@ -133,7 +133,7 @@ describe('Users API', () => {
     const customer = global.getTestCustomer();
     await createTicketViaApi(customer.id, { assignedTo: user.id });
 
-    const response = await api().get(`/api/users/${user.id}`);
+    const response = await withAuth(adminToken).get(`/api/users/${user.id}`);
 
     expect(response.status).toBe(200);
     expect(response.body.data).toMatchObject({
@@ -177,7 +177,7 @@ describe('Users API', () => {
   });
 
   it('returns 404 for unknown user', async () => {
-    const response = await api().get(`/api/users/${VALID_UUID}`);
+    const response = await withAuth(adminToken).get(`/api/users/${VALID_UUID}`);
 
     expect(response.status).toBe(404);
     expect(response.body.success).toBe(false);
@@ -197,10 +197,10 @@ describe('Users API', () => {
     expect(deleteResponse.status).toBe(200);
     expect(deleteResponse.body.data.message).toBe('User deleted successfully');
 
-    const getResponse = await api().get(`/api/users/${agent.id}`);
+    const getResponse = await withAuth(adminToken).get(`/api/users/${agent.id}`);
     expect(getResponse.status).toBe(404);
 
-    const listResponse = await api().get('/api/users');
+    const listResponse = await withAuth(adminToken).get('/api/users');
     expect(listResponse.body.data.users.some((user) => user.id === agent.id)).toBe(false);
 
     const ticketDetails = await api().get(`/api/tickets/${ticketId}`);

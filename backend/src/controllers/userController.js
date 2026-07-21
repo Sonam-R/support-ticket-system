@@ -26,10 +26,16 @@ const deleteUser = async (req, res) => {
   sendSuccess(res, { message: 'User deleted successfully' });
 };
 
+const getAssignableUsers = async (req, res) => {
+  const users = await userService.getAssignableUsers();
+  sendSuccess(res, users);
+};
+
 module.exports = {
   createUser,
   getUsers,
   getUserById,
   updateUser,
   deleteUser,
+  getAssignableUsers,
 };
