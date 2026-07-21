@@ -6,13 +6,27 @@ const morgan = require('morgan');
 const ticketRoutes = require('./routes/ticketRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const errorHandler = require('./middleware/errorHandler');
+const { swaggerServe, swaggerSetup } = require('./config/swagger');
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    },
+  }),
+);
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+
+app.use('/api/docs', swaggerServe, swaggerSetup);
 
 app.get('/health', (req, res) => {
   res.json({
