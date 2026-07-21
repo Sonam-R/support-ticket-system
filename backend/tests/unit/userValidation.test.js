@@ -10,6 +10,7 @@ const validCreateBody = {
   name: 'Emma Johnson',
   email: 'emma@example.com',
   role: 'SUPPORT_AGENT',
+  password: 'Password123',
 };
 
 describe('userValidation schemas', () => {

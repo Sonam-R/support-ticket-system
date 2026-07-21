@@ -30,6 +30,17 @@ const findByEmail = (email, { excludeId } = {}) => {
   return prisma.user.findFirst({ where, select: userSelect });
 };
 
+const findByEmailWithPassword = (email) => {
+  return prisma.user.findFirst({
+    where: { email, ...activeUserFilter },
+    select: {
+      ...userSelect,
+      password: true,
+      isActive: true,
+    },
+  });
+};
+
 const findAll = ({ where, skip, take, orderBy = { name: 'asc' } } = {}) => {
   return prisma.user.findMany({
     where: { ...activeUserFilter, ...where },
@@ -88,6 +99,7 @@ const getTicketStats = async (userId) => {
 module.exports = {
   findById,
   findByEmail,
+  findByEmailWithPassword,
   findAll,
   count,
   create,

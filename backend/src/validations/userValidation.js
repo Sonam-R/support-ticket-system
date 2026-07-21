@@ -15,6 +15,7 @@ const createUserSchema = z.object({
     name: z.string().trim().min(1, 'Name is required'),
     email: emailSchema,
     role: z.enum(ROLE, { message: 'Invalid role value' }),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
   }),
 });
 
@@ -27,6 +28,7 @@ const updateUserSchema = z.object({
       name: z.string().trim().min(1, 'Name cannot be empty').optional(),
       email: emailSchema.optional(),
       role: z.enum(ROLE, { message: 'Invalid role value' }).optional(),
+      password: z.string().min(8, 'Password must be at least 8 characters').optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {
       message: 'At least one field is required for update',

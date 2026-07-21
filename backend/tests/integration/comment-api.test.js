@@ -1,10 +1,12 @@
-const { api, createTicketViaApi } = require('../helpers');
+const { api, withAuth, createTicketViaApi } = require('../helpers');
 
 describe('Comment API', () => {
   let customer;
+  let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
+    token = global.getTestCustomerToken();
   });
 
   describe('POST /api/tickets/:ticketId/comments', () => {
@@ -12,7 +14,7 @@ describe('Comment API', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .post(`/api/tickets/${ticketId}/comments`)
         .send({
           message: 'Investigating the issue',
@@ -34,7 +36,7 @@ describe('Comment API', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      await api()
+      await withAuth(token)
         .post(`/api/tickets/${ticketId}/comments`)
         .send({
           message: 'First comment on ticket',
@@ -54,7 +56,7 @@ describe('Comment API', () => {
     });
 
     it('returns 400 for invalid ticket id format', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets/invalid-id/comments')
         .send({ message: 'Test comment', userId: customer.id });
 

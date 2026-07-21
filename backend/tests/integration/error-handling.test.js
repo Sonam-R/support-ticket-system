@@ -1,5 +1,6 @@
 const {
   api,
+  withAuth,
   createTicketViaApi,
   changeTicketStatusViaApi,
   VALID_UUID,
@@ -7,14 +8,16 @@ const {
 
 describe('Error Handling', () => {
   let customer;
+  let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
+    token = global.getTestCustomerToken();
   });
 
   describe('validation errors return consistent 400 responses', () => {
     it('returns success false with message for invalid create payload', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Bad',
@@ -53,7 +56,7 @@ describe('Error Handling', () => {
     });
 
     it('returns 404 for non-existent ticket on PUT', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .put(`/api/tickets/${VALID_UUID}`)
         .send({ title: 'Updated title value' });
 
@@ -75,7 +78,7 @@ describe('Error Handling', () => {
     });
 
     it('returns 404 for non-existent ticket on DELETE', async () => {
-      const response = await api().delete(`/api/tickets/${VALID_UUID}`);
+      const response = await withAuth(token).delete(`/api/tickets/${VALID_UUID}`);
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({
@@ -85,7 +88,7 @@ describe('Error Handling', () => {
     });
 
     it('returns 404 when adding comment to non-existent ticket', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post(`/api/tickets/${VALID_UUID}/comments`)
         .send({ message: 'Test comment', userId: customer.id });
 
@@ -127,7 +130,7 @@ describe('Error Handling', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .post(`/api/tickets/${ticketId}/comments`)
         .send({ message: 'Test comment', userId: VALID_UUID });
 
@@ -142,7 +145,7 @@ describe('Error Handling', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .post(`/api/tickets/${ticketId}/comments`)
         .send({ message: '', userId: customer.id });
 

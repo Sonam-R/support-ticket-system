@@ -1,6 +1,7 @@
 const express = require('express');
 const ticketController = require('../controllers/ticketController');
 const asyncHandler = require('../middleware/asyncHandler');
+const authenticate = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const {
   createTicketSchema,
@@ -13,12 +14,13 @@ const {
 
 const router = express.Router();
 
-router.post('/', validate(createTicketSchema), asyncHandler(ticketController.createTicket));
+router.post('/', authenticate, validate(createTicketSchema), asyncHandler(ticketController.createTicket));
 
 router.get('/', validate(getTicketsQuerySchema), asyncHandler(ticketController.getTickets));
 
 router.get(
   '/:ticketId/history',
+  authenticate,
   validate(ticketHistoryParamSchema),
   asyncHandler(ticketController.getTicketHistory),
 );
@@ -31,18 +33,21 @@ router.get(
 
 router.put(
   '/:id',
+  authenticate,
   validate(updateTicketSchema),
   asyncHandler(ticketController.updateTicket),
 );
 
 router.patch(
   '/:id/status',
+  authenticate,
   validate(changeTicketStatusSchema),
   asyncHandler(ticketController.changeTicketStatus),
 );
 
 router.delete(
   '/:id',
+  authenticate,
   validate(ticketIdParamSchema),
   asyncHandler(ticketController.deleteTicket),
 );

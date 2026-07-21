@@ -137,6 +137,7 @@ const openApiSpec = {
   ],
   tags: [
     { name: 'Health', description: 'Service health checks' },
+    { name: 'Auth', description: 'Authentication and session management' },
     { name: 'Tickets', description: 'Ticket CRUD and status management' },
     { name: 'Comments', description: 'Ticket comment operations' },
     { name: 'Users', description: 'User management and assignment' },
@@ -170,6 +171,7 @@ const openApiSpec = {
         summary: 'Create ticket',
         description: 'Creates a new support ticket. Status defaults to `OPEN` and priority defaults to `MEDIUM` when omitted.',
         operationId: 'createTicket',
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -610,8 +612,92 @@ const openApiSpec = {
         },
       },
     },
+    '/api/auth/login': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Login',
+        description: 'Authenticates a user with email and password and returns a JWT.',
+        operationId: 'login',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/LoginRequest' },
+              example: {
+                email: 'emma.johnson@supportdesk.com',
+                password: 'Password123',
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Login successful',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/LoginResponse' },
+                example: {
+                  success: true,
+                  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                  user: {
+                    id: EXAMPLE_AGENT_ID,
+                    name: 'Emma Johnson',
+                    email: 'emma.johnson@supportdesk.com',
+                    role: 'SUPPORT_AGENT',
+                  },
+                },
+              },
+            },
+          },
+          400: errorResponse('Validation failed', 'Password is required'),
+          401: errorResponse('Invalid credentials', 'Invalid email or password'),
+          403: errorResponse('Account inactive', 'Account is inactive'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+    },
+    '/api/auth/me': {
+      get: {
+        tags: ['Auth'],
+        summary: 'Get current user',
+        description: 'Returns the authenticated user profile.',
+        operationId: 'getCurrentUser',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse('#/components/schemas/User', userExample),
+          401: errorResponse('Unauthorized', 'Authentication required'),
+          404: errorResponse('User not found', 'User not found'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+    },
+    '/api/auth/logout': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Logout',
+        description:
+          'Acknowledges logout. JWT is stateless — the client should discard the stored token.',
+        operationId: 'logout',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse('#/components/schemas/LogoutResponse', {
+            message: 'Logged out successfully',
+          }),
+          401: errorResponse('Unauthorized', 'Authentication required'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+    },
   },
   components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter JWT token obtained from POST /api/auth/login',
+      },
+    },
     parameters: {
       TicketId: {
         name: 'id',
@@ -718,11 +804,12 @@ const openApiSpec = {
       },
       CreateUserRequest: {
         type: 'object',
-        required: ['name', 'email', 'role'],
+        required: ['name', 'email', 'role', 'password'],
         properties: {
           name: { type: 'string', minLength: 1 },
           email: { type: 'string', format: 'email' },
           role: { type: 'string', enum: ROLE },
+          password: { type: 'string', minLength: 8, example: 'Password123' },
         },
       },
       UpdateUserRequest: {
@@ -951,6 +1038,30 @@ const openApiSpec = {
           message: { type: 'string', minLength: 1 },
           userId: { type: 'string', format: 'uuid' },
         },
+      },
+      LoginRequest: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', format: 'email', example: 'emma.johnson@supportdesk.com' },
+          password: { type: 'string', minLength: 1, example: 'Password123' },
+        },
+      },
+      LoginResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+          user: { $ref: '#/components/schemas/UserSummary' },
+        },
+        required: ['success', 'token', 'user'],
+      },
+      LogoutResponse: {
+        type: 'object',
+        properties: {
+          message: { type: 'string', example: 'Logged out successfully' },
+        },
+        required: ['message'],
       },
     },
   },

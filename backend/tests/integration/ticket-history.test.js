@@ -1,5 +1,6 @@
 const {
   api,
+  withAuth,
   createTicketViaApi,
   createTestAgent,
   prisma,
@@ -9,10 +10,12 @@ const {
 describe('Ticket History API', () => {
   let customer;
   let agent;
+  let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
     agent = global.getTestAgent();
+    token = global.getTestCustomerToken();
   });
 
   async function createTicket(overrides = {}) {
@@ -31,7 +34,7 @@ describe('Ticket History API', () => {
         },
       });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -41,7 +44,7 @@ describe('Ticket History API', () => {
     });
 
     it('returns 404 for non-existent ticket', async () => {
-      const response = await api().get(`/api/tickets/${VALID_UUID}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${VALID_UUID}/history`);
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
@@ -49,7 +52,7 @@ describe('Ticket History API', () => {
     });
 
     it('returns 400 for invalid ticket id', async () => {
-      const response = await api().get('/api/tickets/not-a-uuid/history');
+      const response = await withAuth(token).get('/api/tickets/not-a-uuid/history');
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -60,7 +63,7 @@ describe('Ticket History API', () => {
     it('logs ticket creation', async () => {
       const ticket = await createTicket();
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.status).toBe(200);
       expect(response.body.data).toEqual(
@@ -80,7 +83,7 @@ describe('Ticket History API', () => {
     it('logs assignment on ticket creation', async () => {
       const ticket = await createTicket({ assignedTo: agent.id });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -96,11 +99,11 @@ describe('Ticket History API', () => {
     it('logs ticket update', async () => {
       const ticket = await createTicket();
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${ticket.id}`)
         .send({ title: 'Updated payment issue title' });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -117,11 +120,11 @@ describe('Ticket History API', () => {
     it('logs assignment changes', async () => {
       const ticket = await createTicket();
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${ticket.id}`)
         .send({ assignedTo: agent.id });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -138,11 +141,11 @@ describe('Ticket History API', () => {
     it('logs unassignment', async () => {
       const ticket = await createTicket({ assignedTo: agent.id });
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${ticket.id}`)
         .send({ assignedTo: null });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -159,11 +162,11 @@ describe('Ticket History API', () => {
     it('logs priority changes', async () => {
       const ticket = await createTicket({ priority: 'HIGH' });
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${ticket.id}`)
         .send({ priority: 'URGENT' });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -180,11 +183,11 @@ describe('Ticket History API', () => {
     it('logs status changes', async () => {
       const ticket = await createTicket();
 
-      await api()
+      await withAuth(token)
         .patch(`/api/tickets/${ticket.id}/status`)
         .send({ status: 'IN_PROGRESS' });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -201,11 +204,11 @@ describe('Ticket History API', () => {
     it('does not log failed status transitions', async () => {
       const ticket = await createTicket();
 
-      await api()
+      await withAuth(token)
         .patch(`/api/tickets/${ticket.id}/status`)
         .send({ status: 'CLOSED' });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).not.toEqual(
         expect.arrayContaining([
@@ -217,11 +220,11 @@ describe('Ticket History API', () => {
     it('logs comment creation', async () => {
       const ticket = await createTicket();
 
-      await api()
+      await withAuth(token)
         .post(`/api/tickets/${ticket.id}/comments`)
         .send({ message: 'Investigating the issue.', userId: agent.id });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       expect(response.body.data).toEqual(
         expect.arrayContaining([
@@ -236,11 +239,11 @@ describe('Ticket History API', () => {
     it('returns history sorted by newest first', async () => {
       const ticket = await createTicket();
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${ticket.id}`)
         .send({ priority: 'LOW' });
 
-      const response = await api().get(`/api/tickets/${ticket.id}/history`);
+      const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 
       const timestamps = response.body.data.map((entry) => new Date(entry.createdAt).getTime());
       const sortedTimestamps = [...timestamps].sort((a, b) => b - a);

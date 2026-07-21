@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout.jsx';
+import ProtectedRoute from '../components/ProtectedRoute.jsx';
+import Login from '../pages/Login.jsx';
 import TicketList from '../pages/TicketList.jsx';
 import CreateTicket from '../pages/CreateTicket.jsx';
 import TicketDetails from '../pages/TicketDetails.jsx';
@@ -10,7 +12,14 @@ import UserDetails from '../pages/UserDetails.jsx';
 function AppRoutes() {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
+      <Route path="/login" element={<Login />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/" element={<Navigate to="/tickets" replace />} />
         <Route path="/tickets" element={<TicketList />} />
         <Route path="/tickets/create" element={<CreateTicket />} />

@@ -1,9 +1,21 @@
 const path = require('path');
+const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const prisma = new PrismaClient();
+const DEFAULT_PASSWORD = 'Password123';
+
+async function createUser(data) {
+  const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+  return prisma.user.create({
+    data: {
+      ...data,
+      password: hashedPassword,
+    },
+  });
+}
 
 async function clearExistingData() {
   await prisma.ticketHistory.deleteMany();
@@ -16,68 +28,52 @@ async function clearExistingData() {
 async function main() {
   await clearExistingData();
 
-  const admin = await prisma.user.create({
-    data: {
-      name: 'William Carter',
-      email: 'william.carter@supportdesk.com',
-      role: 'ADMIN',
-    },
+  const admin = await createUser({
+    name: 'William Carter',
+    email: 'william.carter@supportdesk.com',
+    role: 'ADMIN',
   });
 
-  const emma = await prisma.user.create({
-    data: {
-      name: 'Emma Johnson',
-      email: 'emma.johnson@supportdesk.com',
-      role: 'SUPPORT_AGENT',
-    },
+  const emma = await createUser({
+    name: 'Emma Johnson',
+    email: 'emma.johnson@supportdesk.com',
+    role: 'SUPPORT_AGENT',
   });
 
-  const michael = await prisma.user.create({
-    data: {
-      name: 'Michael Brown',
-      email: 'michael.brown@supportdesk.com',
-      role: 'SUPPORT_AGENT',
-    },
+  const michael = await createUser({
+    name: 'Michael Brown',
+    email: 'michael.brown@supportdesk.com',
+    role: 'SUPPORT_AGENT',
   });
 
-  const david = await prisma.user.create({
-    data: {
-      name: 'David Miller',
-      email: 'david.miller@supportdesk.com',
-      role: 'SUPPORT_AGENT',
-    },
+  const david = await createUser({
+    name: 'David Miller',
+    email: 'david.miller@supportdesk.com',
+    role: 'SUPPORT_AGENT',
   });
 
-  const olivia = await prisma.user.create({
-    data: {
-      name: 'Olivia Davis',
-      email: 'olivia.davis@example.com',
-      role: 'VIEWER',
-    },
+  const olivia = await createUser({
+    name: 'Olivia Davis',
+    email: 'olivia.davis@example.com',
+    role: 'VIEWER',
   });
 
-  const james = await prisma.user.create({
-    data: {
-      name: 'James Wilson',
-      email: 'james.wilson@example.com',
-      role: 'VIEWER',
-    },
+  const james = await createUser({
+    name: 'James Wilson',
+    email: 'james.wilson@example.com',
+    role: 'VIEWER',
   });
 
-  const sophia = await prisma.user.create({
-    data: {
-      name: 'Sophia Martinez',
-      email: 'sophia.martinez@example.com',
-      role: 'VIEWER',
-    },
+  const sophia = await createUser({
+    name: 'Sophia Martinez',
+    email: 'sophia.martinez@example.com',
+    role: 'VIEWER',
   });
 
-  const william = await prisma.user.create({
-    data: {
-      name: 'William Wilson',
-      email: 'william.wilson@example.com',
-      role: 'VIEWER',
-    },
+  const william = await createUser({
+    name: 'William Wilson',
+    email: 'william.wilson@example.com',
+    role: 'VIEWER',
   });
 
   const ticket1 = await prisma.ticket.create({

@@ -1,15 +1,17 @@
-const { api, createTicketViaApi, VALID_UUID } = require('../helpers');
+const { api, withAuth, createTicketViaApi, VALID_UUID } = require('../helpers');
 
 describe('Edge Cases', () => {
   let customer;
+  let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
+    token = global.getTestCustomerToken();
   });
 
   describe('ticket creation edge cases', () => {
     it('rejects empty title', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: '',
@@ -23,7 +25,7 @@ describe('Edge Cases', () => {
     });
 
     it('rejects title shorter than 5 characters', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Hi',
@@ -37,7 +39,7 @@ describe('Edge Cases', () => {
     });
 
     it('rejects empty description', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Valid title here',
@@ -51,7 +53,7 @@ describe('Edge Cases', () => {
     });
 
     it('rejects non-existent creator', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Valid title here',
@@ -73,7 +75,7 @@ describe('Edge Cases', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .put(`/api/tickets/${ticketId}`)
         .send({ assignedToId: VALID_UUID });
 
@@ -88,7 +90,7 @@ describe('Edge Cases', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api().put(`/api/tickets/${ticketId}`).send({});
+      const response = await withAuth(token).put(`/api/tickets/${ticketId}`).send({});
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -104,7 +106,7 @@ describe('Edge Cases', () => {
     });
 
     it('returns 400 for malformed ticket id on PUT', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .put('/api/tickets/not-a-uuid')
         .send({ title: 'Updated title value' });
 
@@ -113,7 +115,7 @@ describe('Edge Cases', () => {
     });
 
     it('returns 400 for malformed ticket id on status change', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .patch('/api/tickets/not-a-uuid/status')
         .send({ status: 'IN_PROGRESS' });
 
@@ -122,7 +124,7 @@ describe('Edge Cases', () => {
     });
 
     it('returns 400 for malformed ticket id on DELETE', async () => {
-      const response = await api().delete('/api/tickets/not-a-uuid');
+      const response = await withAuth(token).delete('/api/tickets/not-a-uuid');
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);

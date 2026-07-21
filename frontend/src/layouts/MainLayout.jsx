@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const navLinks = [
   {
@@ -21,6 +22,14 @@ const navLinks = [
 ];
 
 function MainLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="app-layout">
       <header className="app-header">
@@ -39,6 +48,12 @@ function MainLayout() {
               </NavLink>
             ))}
           </nav>
+          <div className="app-header-actions">
+            {user && <span className="app-user-name">{user.name}</span>}
+            <button type="button" className="btn btn-secondary btn-sm" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

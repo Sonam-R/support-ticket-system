@@ -1,11 +1,18 @@
-const { api, createTestUser, createTicketViaApi, VALID_UUID } = require('../helpers');
+const { api, withAuth, createTestUser, createTicketViaApi, VALID_UUID, TEST_PASSWORD } = require('../helpers');
 
 describe('Users API', () => {
+  let adminToken;
+
+  beforeAll(() => {
+    adminToken = global.getTestAdminToken();
+  });
+
   it('creates a user', async () => {
-    const response = await api().post('/api/users').send({
+    const response = await withAuth(adminToken).post('/api/users').send({
       name: 'Emma Johnson',
       email: `emma-${Date.now()}@example.com`,
       role: 'SUPPORT_AGENT',
+      password: TEST_PASSWORD,
     });
 
     expect(response.status).toBe(201);
@@ -24,10 +31,11 @@ describe('Users API', () => {
     const email = `duplicate-${Date.now()}@example.com`;
     await createTestUser({ email, name: 'First User' });
 
-    const response = await api().post('/api/users').send({
+    const response = await withAuth(adminToken).post('/api/users').send({
       name: 'Second User',
       email,
       role: 'VIEWER',
+      password: TEST_PASSWORD,
     });
 
     expect(response.status).toBe(409);
@@ -36,10 +44,11 @@ describe('Users API', () => {
   });
 
   it('rejects invalid email on create', async () => {
-    const response = await api().post('/api/users').send({
+    const response = await withAuth(adminToken).post('/api/users').send({
       name: 'Invalid Email User',
       email: 'not-an-email',
       role: 'VIEWER',
+      password: TEST_PASSWORD,
     });
 
     expect(response.status).toBe(400);
@@ -47,10 +56,11 @@ describe('Users API', () => {
   });
 
   it('rejects invalid role on create', async () => {
-    const response = await api().post('/api/users').send({
+    const response = await withAuth(adminToken).post('/api/users').send({
       name: 'Invalid Role User',
       email: `invalid-role-${Date.now()}@example.com`,
       role: 'INVALID',
+      password: TEST_PASSWORD,
     });
 
     expect(response.status).toBe(400);
@@ -141,7 +151,7 @@ describe('Users API', () => {
   it('updates a user', async () => {
     const user = await createTestUser({ role: 'VIEWER' });
 
-    const response = await api().patch(`/api/users/${user.id}`).send({
+    const response = await withAuth(adminToken).patch(`/api/users/${user.id}`).send({
       name: 'Updated Name',
       role: 'ADMIN',
     });
@@ -158,7 +168,7 @@ describe('Users API', () => {
     const first = await createTestUser({ email: `first-${Date.now()}@example.com` });
     const second = await createTestUser({ email: `second-${Date.now()}@example.com` });
 
-    const response = await api().patch(`/api/users/${second.id}`).send({
+    const response = await withAuth(adminToken).patch(`/api/users/${second.id}`).send({
       email: first.email,
     });
 
@@ -183,7 +193,7 @@ describe('Users API', () => {
     const ticketResponse = await createTicketViaApi(customer.id, { assignedTo: agent.id });
     const ticketId = ticketResponse.body.data.id;
 
-    const deleteResponse = await api().delete(`/api/users/${agent.id}`);
+    const deleteResponse = await withAuth(adminToken).delete(`/api/users/${agent.id}`);
     expect(deleteResponse.status).toBe(200);
     expect(deleteResponse.body.data.message).toBe('User deleted successfully');
 

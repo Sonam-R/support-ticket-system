@@ -3,7 +3,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ROLE, ROLE_LABELS } from '../constants/index.js';
 
-const userSchema = z.object({
+const createUserSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  role: z.enum(ROLE, { message: 'Role is required' }),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+const updateUserSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().min(1, 'Email is required').email('Invalid email format'),
   role: z.enum(ROLE, { message: 'Role is required' }),
@@ -15,17 +22,21 @@ function UserForm({
   onCancel,
   isSubmitting = false,
   submitLabel = 'Save User',
+  requirePassword = false,
 }) {
+  const schema = requirePassword ? createUserSchema : updateUserSchema;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: initialData.name || '',
       email: initialData.email || '',
       role: initialData.role || 'VIEWER',
+      password: '',
     },
   });
 
@@ -66,6 +77,20 @@ function UserForm({
         </select>
         {errors.role && <p className="field-error">{errors.role.message}</p>}
       </div>
+
+      {requirePassword && (
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="Minimum 8 characters"
+            className={errors.password ? 'input-error' : ''}
+            {...register('password')}
+          />
+          {errors.password && <p className="field-error">{errors.password.message}</p>}
+        </div>
+      )}
 
       <div className="form-actions">
         {onCancel && (

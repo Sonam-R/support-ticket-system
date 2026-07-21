@@ -1,15 +1,17 @@
-const { api, createTicketViaApi, createTestAgent } = require('../helpers');
+const { api, withAuth, createTicketViaApi, createTestAgent } = require('../helpers');
 
 describe('Ticket API', () => {
   let customer;
+  let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
+    token = global.getTestCustomerToken();
   });
 
   describe('POST /api/tickets', () => {
     it('creates a ticket with valid payload', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Payment issue',
@@ -30,7 +32,7 @@ describe('Ticket API', () => {
 
     it('creates a ticket with an assignee', async () => {
       const agent = global.getTestAgent();
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Assigned ticket issue',
@@ -114,7 +116,7 @@ describe('Ticket API', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .put(`/api/tickets/${ticketId}`)
         .send({
           title: 'Updated payment issue',
@@ -232,7 +234,7 @@ describe('Ticket API', () => {
         description: 'Assigned to test agent',
       });
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${created.body.data.id}`)
         .send({ assignedToId: agent.id });
 
@@ -253,7 +255,7 @@ describe('Ticket API', () => {
         priority: 'HIGH',
       });
 
-      await api()
+      await withAuth(token)
         .put(`/api/tickets/${created.body.data.id}`)
         .send({ assignedToId: agent.id });
 
@@ -341,7 +343,7 @@ describe('Ticket API', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const deleteResponse = await api().delete(`/api/tickets/${ticketId}`);
+      const deleteResponse = await withAuth(token).delete(`/api/tickets/${ticketId}`);
 
       expect(deleteResponse.status).toBe(200);
       expect(deleteResponse.body).toEqual({

@@ -39,6 +39,7 @@ function CreateUser() {
           onCancel={() => navigate('/users')}
           isSubmitting={isSubmitting || loading}
           submitLabel="Create User"
+          requirePassword
         />
       </div>
     </div>

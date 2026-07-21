@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const bcrypt = require('bcrypt');
 const userRepository = require('../repositories/userRepository');
 
 const ensureUserExists = async (id) => {
@@ -19,13 +20,16 @@ const ensureUniqueEmail = async (email, excludeId) => {
   }
 };
 
-const createUser = async ({ name, email, role }) => {
+const createUser = async ({ name, email, role, password }) => {
   await ensureUniqueEmail(email);
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   return userRepository.create({
     name,
     email,
     role,
+    password: hashedPassword,
   });
 };
 
@@ -85,6 +89,10 @@ const updateUser = async (id, updateData) => {
 
   if (updateData.email) {
     await ensureUniqueEmail(updateData.email, id);
+  }
+
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 10);
   }
 
   return userRepository.update(id, updateData);

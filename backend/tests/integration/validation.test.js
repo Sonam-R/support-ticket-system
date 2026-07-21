@@ -1,15 +1,17 @@
-const { api, createTicketViaApi } = require('../helpers');
+const { api, withAuth, createTicketViaApi } = require('../helpers');
 
 describe('Ticket API Validation', () => {
   let customer;
+  let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
+    token = global.getTestCustomerToken();
   });
 
   describe('POST /api/tickets validation', () => {
     it('rejects missing title', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           description: 'Issue',
@@ -23,7 +25,7 @@ describe('Ticket API Validation', () => {
     });
 
     it('rejects missing description', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Valid title',
@@ -37,7 +39,7 @@ describe('Ticket API Validation', () => {
     });
 
     it('rejects invalid priority', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Valid title',
@@ -52,7 +54,7 @@ describe('Ticket API Validation', () => {
     });
 
     it('rejects empty title', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: '',
@@ -66,7 +68,7 @@ describe('Ticket API Validation', () => {
     });
 
     it('rejects invalid createdById', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .post('/api/tickets')
         .send({
           title: 'Valid title',
@@ -85,7 +87,7 @@ describe('Ticket API Validation', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .put(`/api/tickets/${ticketId}`)
         .send({ assignedToId: 'invalid-uuid' });
 
@@ -99,7 +101,7 @@ describe('Ticket API Validation', () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
-      const response = await api()
+      const response = await withAuth(token)
         .patch(`/api/tickets/${ticketId}/status`)
         .send({ status: 'UNKNOWN' });
 
@@ -108,7 +110,7 @@ describe('Ticket API Validation', () => {
     });
 
     it('rejects invalid ticket id format', async () => {
-      const response = await api()
+      const response = await withAuth(token)
         .patch('/api/tickets/invalid-id/status')
         .send({ status: 'IN_PROGRESS' });
 
