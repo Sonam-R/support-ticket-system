@@ -8,6 +8,7 @@ const {
   changeTicketStatusSchema,
   getTicketsQuerySchema,
   ticketIdParamSchema,
+  ticketHistoryParamSchema,
 } = require('../validations/ticketValidation');
 
 const router = express.Router();
@@ -15,6 +16,12 @@ const router = express.Router();
 router.post('/', validate(createTicketSchema), asyncHandler(ticketController.createTicket));
 
 router.get('/', validate(getTicketsQuerySchema), asyncHandler(ticketController.getTickets));
+
+router.get(
+  '/:ticketId/history',
+  validate(ticketHistoryParamSchema),
+  asyncHandler(ticketController.getTicketHistory),
+);
 
 router.get(
   '/:id',

@@ -82,10 +82,17 @@ const ticketIdParamSchema = z.object({
   }),
 });
 
+const ticketHistoryParamSchema = z.object({
+  params: z.object({
+    ticketId: z.string().uuid('Invalid ticket id'),
+  }),
+});
+
 module.exports = {
   createTicketSchema,
   updateTicketSchema,
   changeTicketStatusSchema,
   getTicketsQuerySchema,
   ticketIdParamSchema,
+  ticketHistoryParamSchema,
 };

@@ -102,6 +102,21 @@ const commentExample = {
   user: userExample,
 };
 
+const historyExample = {
+  id: '8f3e2c1a-9b7d-4e6f-a1c2-3d4e5f6a7b8c',
+  ticketId: EXAMPLE_TICKET_ID,
+  action: 'STATUS_CHANGED',
+  field: 'status',
+  oldValue: 'OPEN',
+  newValue: 'IN_PROGRESS',
+  performedBy: {
+    id: EXAMPLE_AGENT_ID,
+    name: 'Alex Rivera',
+    email: 'alex.rivera@supportdesk.com',
+  },
+  createdAt: '2026-07-21T11:00:00.000Z',
+};
+
 const openApiSpec = {
   openapi: '3.0.3',
   info: {
@@ -285,7 +300,7 @@ const openApiSpec = {
         tags: ['Tickets'],
         summary: 'Get ticket by ID',
         description:
-          'Returns a single ticket with related creator, assignee, comments, attachments, history, and allowed status transitions.',
+          'Returns a single ticket with related creator, assignee, comments, attachments, and allowed status transitions.',
         operationId: 'getTicketById',
         parameters: [{ $ref: '#/components/parameters/TicketId' }],
         responses: {
@@ -293,7 +308,6 @@ const openApiSpec = {
             ...ticketExample,
             comments: [commentExample],
             attachments: [],
-            history: [],
             allowedTransitions: ['IN_PROGRESS', 'CANCELLED'],
           }),
           400: errorResponse('Invalid ticket ID', 'Invalid ticket id'),
@@ -370,13 +384,28 @@ const openApiSpec = {
             status: 'IN_PROGRESS',
             comments: [commentExample],
             attachments: [],
-            history: [],
             allowedTransitions: ['RESOLVED', 'CANCELLED'],
           }),
           400: errorResponse(
             'Invalid status or transition',
             'Cannot transition ticket from OPEN to CLOSED',
           ),
+          404: errorResponse('Ticket not found', 'Ticket not found'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+    },
+    '/api/tickets/{ticketId}/history': {
+      get: {
+        tags: ['Tickets'],
+        summary: 'Get ticket activity history',
+        description:
+          'Returns the audit timeline for a ticket, ordered by newest activity first.',
+        operationId: 'getTicketHistory',
+        parameters: [{ $ref: '#/components/parameters/TicketIdParam' }],
+        responses: {
+          200: successResponse('#/components/schemas/TicketHistoryList', [historyExample]),
+          400: errorResponse('Invalid ticket ID', 'Invalid ticket id'),
           404: errorResponse('Ticket not found', 'Ticket not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
         },
@@ -564,11 +593,17 @@ const openApiSpec = {
           id: { type: 'string', format: 'uuid' },
           ticketId: { type: 'string', format: 'uuid' },
           action: { type: 'string' },
+          field: { type: 'string', nullable: true },
           oldValue: { type: 'string', nullable: true },
           newValue: { type: 'string', nullable: true },
+          performedBy: { $ref: '#/components/schemas/UserSummary' },
           createdAt: { type: 'string', format: 'date-time' },
         },
-        required: ['id', 'ticketId', 'action', 'createdAt'],
+        required: ['id', 'ticketId', 'action', 'performedBy', 'createdAt'],
+      },
+      TicketHistoryList: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/TicketHistory' },
       },
       TicketDetail: {
         allOf: [
@@ -584,17 +619,13 @@ const openApiSpec = {
                 type: 'array',
                 items: { $ref: '#/components/schemas/Attachment' },
               },
-              history: {
-                type: 'array',
-                items: { $ref: '#/components/schemas/TicketHistory' },
-              },
               allowedTransitions: {
                 type: 'array',
                 items: { $ref: '#/components/schemas/TicketStatus' },
                 description: 'Statuses the ticket can transition to from its current status',
               },
             },
-            required: ['comments', 'attachments', 'history', 'allowedTransitions'],
+            required: ['comments', 'attachments', 'allowedTransitions'],
           },
         ],
       },

@@ -34,6 +34,11 @@ const deleteTicket = async (req, res) => {
   sendSuccess(res, { message: 'Ticket deleted successfully' });
 };
 
+const getTicketHistory = async (req, res) => {
+  const history = await ticketService.getTicketHistory(req.params.ticketId);
+  sendSuccess(res, history);
+};
+
 module.exports = {
   createTicket,
   getTickets,
@@ -41,4 +46,5 @@ module.exports = {
   updateTicket,
   changeTicketStatus,
   deleteTicket,
+  getTicketHistory,
 };

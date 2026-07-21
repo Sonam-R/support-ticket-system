@@ -44,9 +44,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdTickets  Ticket[]  @relation("CreatedTickets")
-  assignedTickets Ticket[]  @relation("AssignedTickets")
+  createdTickets  Ticket[]        @relation("CreatedTickets")
+  assignedTickets Ticket[]        @relation("AssignedTickets")
   comments        Comment[]
+  historyEntries  TicketHistory[]
 
   @@index([email])
   @@index([role])
@@ -100,12 +101,17 @@ model Attachment {
 }
 
 model TicketHistory {
-  id        String   @id @default(uuid())
-  ticketId  String
-  action    String
-  oldValue  String?
-  newValue  String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(uuid())
+  ticketId      String
+  action        String
+  field         String?
+  oldValue      String?
+  newValue      String?
+  performedById String
+  createdAt     DateTime @default(now())
 
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  performedBy User   @relation(fields: [performedById], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
 }

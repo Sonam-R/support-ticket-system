@@ -18,6 +18,7 @@ describe('Swagger API documentation', () => {
         '/api/tickets',
         '/api/tickets/{id}',
         '/api/tickets/{id}/status',
+        '/api/tickets/{ticketId}/history',
         '/api/tickets/{ticketId}/comments',
         '/api/users',
       ]),

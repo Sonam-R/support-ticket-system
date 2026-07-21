@@ -43,3 +43,8 @@ export async function getComments(ticketId) {
   const response = await api.get(`/tickets/${ticketId}/comments`);
   return unwrap(response);
 }
+
+export async function getTicketHistory(ticketId) {
+  const response = await api.get(`/tickets/${ticketId}/history`);
+  return unwrap(response);
+}

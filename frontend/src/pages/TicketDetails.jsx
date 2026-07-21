@@ -5,6 +5,7 @@ import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
 import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
 import StatusActions from '../components/StatusActions.jsx';
 import CommentSection from '../components/CommentSection.jsx';
+import TicketHistory from '../components/TicketHistory.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import TicketForm from '../components/TicketForm.jsx';
 import { formatDateTime } from '../utils/format.js';
@@ -25,7 +26,9 @@ function TicketDetails() {
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusError, setStatusError] = useState(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
@@ -57,6 +60,32 @@ function TicketDetails() {
     loadTicket();
   }, [id]);
 
+  useEffect(() => {
+    async function loadHistory() {
+      setHistoryLoading(true);
+
+      try {
+        const data = await ticketService.getTicketHistory(id);
+        setHistory(data || []);
+      } catch {
+        setHistory([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    }
+
+    loadHistory();
+  }, [id]);
+
+  async function refreshHistory() {
+    try {
+      const data = await ticketService.getTicketHistory(id);
+      setHistory(data || []);
+    } catch {
+      setHistory([]);
+    }
+  }
+
   const users = extractUsersFromTickets(tickets);
 
   async function handleStatusChange(newStatus) {
@@ -66,6 +95,7 @@ function TicketDetails() {
     try {
       const updatedTicket = await ticketService.changeTicketStatus(id, newStatus);
       setTicket(updatedTicket);
+      await refreshHistory();
     } catch (err) {
       setStatusError(err.message);
     } finally {
@@ -79,6 +109,7 @@ function TicketDetails() {
     try {
       const newComment = await addComment(id, data);
       setComments((prev) => [...prev, newComment]);
+      await refreshHistory();
     } finally {
       setIsSubmittingComment(false);
     }
@@ -92,6 +123,7 @@ function TicketDetails() {
       const updated = await updateTicket(id, data);
       setTicket((prev) => ({ ...prev, ...updated }));
       setIsEditing(false);
+      await refreshHistory();
     } catch (err) {
       setUpdateError(err.message);
     } finally {
@@ -212,6 +244,8 @@ function TicketDetails() {
         onAddComment={handleAddComment}
         isSubmitting={isSubmittingComment}
       />
+
+      <TicketHistory history={history} loading={historyLoading} />
     </div>
   );
 }

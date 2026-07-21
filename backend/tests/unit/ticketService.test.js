@@ -12,6 +12,13 @@ jest.mock('../../src/repositories/userRepository', () => ({
   findById: jest.fn(),
 }));
 
+jest.mock('../../src/services/historyService', () => ({
+  logTicketCreated: jest.fn().mockResolvedValue(undefined),
+  logTicketUpdated: jest.fn().mockResolvedValue(undefined),
+  logStatusChanged: jest.fn().mockResolvedValue(undefined),
+  getTicketHistory: jest.fn(),
+}));
+
 const VALID_UUID = '00000000-0000-0000-0000-000000000001';
 const AppError = require('../../src/utils/AppError');
 const ticketRepository = require('../../src/repositories/ticketRepository');

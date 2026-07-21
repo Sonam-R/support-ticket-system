@@ -18,9 +18,6 @@ const ticketInclude = {
   attachments: {
     orderBy: { createdAt: 'asc' },
   },
-  history: {
-    orderBy: { createdAt: 'asc' },
-  },
 };
 
 const create = (data) => {
@@ -92,11 +89,19 @@ const updateStatus = (ticketId, status) => {
   });
 };
 
+const existsById = (id) => {
+  return prisma.ticket.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+};
+
 module.exports = {
   create,
   findAll,
   count,
   findById,
+  existsById,
   update,
   updateStatus,
   remove,

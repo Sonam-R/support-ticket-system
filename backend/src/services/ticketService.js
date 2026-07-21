@@ -2,6 +2,12 @@ const AppError = require('../utils/AppError');
 const ticketRepository = require('../repositories/ticketRepository');
 const userRepository = require('../repositories/userRepository');
 const {
+  logTicketCreated,
+  logTicketUpdated,
+  logStatusChanged,
+  getTicketHistory,
+} = require('./historyService');
+const {
   getAllowedTransitions,
   validateStatusTransition,
 } = require('./statusTransitionService');
@@ -47,7 +53,10 @@ const createTicket = async (ticketData) => {
 
   await validateAssignee(normalizedData.assignedToId);
 
-  return ticketRepository.create(normalizedData);
+  const ticket = await ticketRepository.create(normalizedData);
+  await logTicketCreated(ticket, normalizedData.createdById);
+
+  return ticket;
 };
 
 const getTickets = async ({
@@ -131,7 +140,15 @@ const updateTicket = async (id, updateData) => {
     await validateAssignee(normalizedData.assignedToId);
   }
 
-  return ticketRepository.update(id, normalizedData);
+  const updatedTicket = await ticketRepository.update(id, normalizedData);
+  await logTicketUpdated(
+    existingTicket,
+    updatedTicket,
+    normalizedData,
+    existingTicket.createdById,
+  );
+
+  return updatedTicket;
 };
 
 const changeTicketStatus = async (ticketId, newStatus) => {
@@ -144,6 +161,7 @@ const changeTicketStatus = async (ticketId, newStatus) => {
   validateStatusTransition(existingTicket.status, newStatus);
 
   const updatedTicket = await ticketRepository.updateStatus(ticketId, newStatus);
+  await logStatusChanged(existingTicket, newStatus, existingTicket.createdById);
 
   return enrichWithAllowedTransitions(updatedTicket);
 };
@@ -165,4 +183,5 @@ module.exports = {
   updateTicket,
   changeTicketStatus,
   deleteTicket,
+  getTicketHistory,
 };

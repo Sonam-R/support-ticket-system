@@ -2,6 +2,7 @@ const AppError = require('../utils/AppError');
 const commentRepository = require('../repositories/commentRepository');
 const ticketRepository = require('../repositories/ticketRepository');
 const userRepository = require('../repositories/userRepository');
+const { logCommentAdded } = require('./historyService');
 
 const addComment = async (ticketId, { message, userId }) => {
   const ticket = await ticketRepository.findById(ticketId);
@@ -16,7 +17,10 @@ const addComment = async (ticketId, { message, userId }) => {
     throw new AppError('User not found', 404);
   }
 
-  return commentRepository.create({ message, ticketId, userId });
+  const comment = await commentRepository.create({ message, ticketId, userId });
+  await logCommentAdded(ticketId, userId);
+
+  return comment;
 };
 
 const getComments = async (ticketId) => {

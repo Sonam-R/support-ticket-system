@@ -51,3 +51,13 @@ export const SORT_ORDERS = [
   { value: 'desc', label: 'Descending' },
   { value: 'asc', label: 'Ascending' },
 ];
+
+export const HISTORY_ACTION_LABELS = {
+  TICKET_CREATED: { label: 'Ticket Created', icon: '🟢' },
+  TICKET_UPDATED: { label: 'Ticket Updated', icon: '✏️' },
+  ASSIGNED: { label: 'Assigned', icon: '👤' },
+  UNASSIGNED: { label: 'Unassigned', icon: '👤' },
+  PRIORITY_CHANGED: { label: 'Priority Changed', icon: '⬆' },
+  STATUS_CHANGED: { label: 'Status Changed', icon: '🔄' },
+  COMMENT_ADDED: { label: 'Comment Added', icon: '💬' },
+};
