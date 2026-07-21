@@ -201,15 +201,16 @@ No authentication required.
 
 ### `POST /api/tickets/:ticketId/comments`
 
-**Auth:** Required
+**Auth:** ADMIN, SUPPORT_AGENT
 
 **Request:**
 ```json
 {
-  "message": "We are investigating the issue",
-  "userId": "user-uuid"
+  "message": "We are investigating the issue"
 }
 ```
+
+The authenticated user is recorded as the comment author.
 
 **Response 201:** Created comment with user relation.
 
@@ -268,7 +269,7 @@ No authentication required.
 
 **Auth:** ADMIN
 
-**Response 200:** User with ticket stats (`createdCount`, `assignedCount`).
+**Response 200:** User with ticket stats (`assignedTickets`, `createdTickets`).
 
 ### `PATCH /api/users/:id`
 

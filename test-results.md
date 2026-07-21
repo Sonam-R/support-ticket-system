@@ -6,9 +6,9 @@
 
 | Suite | Command | Result |
 |-------|---------|--------|
-| Backend | `npm test` | **223 passed** (16 suites) |
+| Backend | `npm test` | **221 passed** (16 suites) |
 | Frontend | `npm run test:frontend` | **15 passed** (2 suites) |
-| **Total** | | **238 passed, 0 failed** |
+| **Total** | | **236 passed, 0 failed** |
 
 **Duration:** ~10s backend, ~3.5s frontend
 

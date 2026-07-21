@@ -90,7 +90,7 @@ describe('Error Handling', () => {
     it('returns 404 when adding comment to non-existent ticket', async () => {
       const response = await withAuth(token)
         .post(`/api/tickets/${VALID_UUID}/comments`)
-        .send({ message: 'Test comment', userId: customer.id });
+        .send({ message: 'Test comment' });
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({
@@ -126,28 +126,13 @@ describe('Error Handling', () => {
   });
 
   describe('comment errors', () => {
-    it('returns 404 when comment author does not exist', async () => {
-      const createResponse = await createTicketViaApi(customer.id);
-      const ticketId = createResponse.body.data.id;
-
-      const response = await withAuth(token)
-        .post(`/api/tickets/${ticketId}/comments`)
-        .send({ message: 'Test comment', userId: VALID_UUID });
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({
-        success: false,
-        message: 'User not found',
-      });
-    });
-
     it('returns 400 for empty comment message', async () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
       const response = await withAuth(token)
         .post(`/api/tickets/${ticketId}/comments`)
-        .send({ message: '', userId: customer.id });
+        .send({ message: '' });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);

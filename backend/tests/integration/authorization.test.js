@@ -99,16 +99,19 @@ describe('Role-Based Authorization', () => {
       expect(response.body.success).toBe(false);
     });
 
-    it('allows VIEWER to add comments', async () => {
+    it('denies VIEWER from adding comments', async () => {
       const createResponse = await createTicketViaApi(customer.id);
       const ticketId = createResponse.body.data.id;
 
       const response = await withAuth(viewerToken)
         .post(`/api/tickets/${ticketId}/comments`)
-        .send({ message: 'Viewer comment', userId: customer.id });
+        .send({ message: 'Viewer comment' });
 
-      expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        message: 'You do not have permission to perform this action.',
+      });
     });
 
     it('allows ADMIN to delete tickets', async () => {

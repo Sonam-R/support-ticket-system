@@ -435,7 +435,7 @@ const openApiSpec = {
       post: {
         tags: ['Comments'],
         summary: 'Add comment',
-        description: 'Adds a comment to an existing ticket.\n\n**Authorization:** `ADMIN`, `SUPPORT_AGENT`, `VIEWER`',
+        description: 'Adds a comment to an existing ticket. The authenticated user is recorded as the comment author.\n\n**Authorization:** `ADMIN`, `SUPPORT_AGENT`',
         operationId: 'addComment',
         security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/TicketIdParam' }],
@@ -447,7 +447,6 @@ const openApiSpec = {
               example: {
                 message:
                   'We have escalated this to the billing team and will update you within 24 hours.',
-                userId: EXAMPLE_AGENT_ID,
               },
             },
           },
@@ -1067,10 +1066,9 @@ const openApiSpec = {
       },
       CreateCommentRequest: {
         type: 'object',
-        required: ['message', 'userId'],
+        required: ['message'],
         properties: {
           message: { type: 'string', minLength: 1 },
-          userId: { type: 'string', format: 'uuid' },
         },
       },
       LoginRequest: {

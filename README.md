@@ -13,7 +13,7 @@ Full-stack support ticket management application with JWT authentication, role-b
 - **Authorization** — RBAC with Admin, Support Agent, and Viewer roles
 - **Search & filtering** — Keyword search, status/priority/assignee filters, sorting, pagination
 - **API docs** — Swagger/OpenAPI at `/api/docs`
-- **Testing** — 223 backend + 15 frontend automated tests
+- **Testing** — 221 backend + 15 frontend automated tests
 - **DevOps** — Docker Compose stack and GitHub Actions CI
 
 ## Technology Stack
@@ -159,7 +159,7 @@ Stop: `docker compose down` (data persists in `postgres_data` volume).
 ## Testing
 
 ```bash
-npm test                 # Backend (223 tests)
+npm test                 # Backend (221 tests)
 npm run test:frontend    # Frontend (15 tests)
 npm run test:coverage    # Backend coverage report
 npm run build            # Frontend production build

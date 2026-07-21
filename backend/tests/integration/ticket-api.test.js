@@ -325,7 +325,7 @@ describe('Ticket API', () => {
       const invalidCases = [
         '/api/tickets?page=-1',
         '/api/tickets?limit=0',
-        '/api/tickets?priority=URGENT',
+        '/api/tickets?priority=INVALID',
         '/api/tickets?sortBy=random',
         '/api/tickets?order=sideways',
       ];

@@ -36,8 +36,6 @@ describe('Login page', () => {
     clearAuth();
     vi.clearAllMocks();
     authService.getCurrentUser.mockRejectedValue(new Error('No token'));
-    const { AuthProvider } = await import('../context/AuthContext.jsx');
-    global.AuthProvider = AuthProvider;
   });
 
   it('logs in successfully', async () => {

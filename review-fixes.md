@@ -21,6 +21,12 @@ Improvements made after self-review and AI-assisted code review.
 | Assignee dropdown empty | `/api/users/assignable` endpoint | Manual testing |
 | Docker missing migrations | Entrypoint script runs `prisma migrate deploy` | Docker startup |
 | Outdated documentation | Full documentation pass against codebase | This submission |
+| Final audit: VIEWER could add comments | `authorize(TICKET_WRITERS)` on comment POST; UI hides form for Viewer | `authorization.test.js` |
+| Final audit: comment author spoofing | Comments use `req.user.id` instead of client `userId` | `comment-api.test.js` |
+| Final audit: wrong history actor | Ticket updates/status log `req.user.id` as `performedBy` | `ticket-history.test.js` |
+| Final audit: URGENT not filterable | Added URGENT to `TICKET_LIST_PRIORITY` | `ticket-api.test.js` |
+| Final audit: lint error in auth tests | Removed unused `global.AuthProvider` assignment | `npm run lint` |
+| Final audit: dead code | Removed unused `useUsers` hook and `extractUsersFromTickets` | Code inspection |
 
 ## Not Implemented (Intentional)
 

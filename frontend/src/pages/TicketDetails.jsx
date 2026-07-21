@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import * as ticketService from '../services/ticketService.js';
-import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
+import { useTickets } from '../hooks/useTickets.js';
 import { useAssignableUsers } from '../hooks/useAssignableUsers.js';
 import StatusActions from '../components/StatusActions.jsx';
 import CommentSection from '../components/CommentSection.jsx';
@@ -22,12 +22,13 @@ function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tickets, fetchTickets, addComment, updateTicket } = useTickets();
+  const { addComment, updateTicket } = useTickets();
   const { users: assignableUsers } = useAssignableUsers({
     autoFetch: canManageTickets(user),
   });
 
   const canEditTicket = canManageTickets(user);
+  const canAddComment = canManageTickets(user);
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -41,10 +42,6 @@ function TicketDetails() {
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
-
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
 
   useEffect(() => {
     async function loadTicket() {
@@ -90,8 +87,6 @@ function TicketDetails() {
       setHistory([]);
     }
   }
-
-  const users = extractUsersFromTickets(tickets);
 
   async function handleStatusChange(newStatus) {
     setIsChangingStatus(true);
@@ -249,7 +244,7 @@ function TicketDetails() {
 
       <CommentSection
         comments={comments}
-        users={users}
+        canAddComment={canAddComment}
         onAddComment={handleAddComment}
         isSubmitting={isSubmittingComment}
       />

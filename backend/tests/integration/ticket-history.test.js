@@ -222,7 +222,7 @@ describe('Ticket History API', () => {
 
       await withAuth(token)
         .post(`/api/tickets/${ticket.id}/comments`)
-        .send({ message: 'Investigating the issue.', userId: agent.id });
+        .send({ message: 'Investigating the issue.' });
 
       const response = await withAuth(token).get(`/api/tickets/${ticket.id}/history`);
 

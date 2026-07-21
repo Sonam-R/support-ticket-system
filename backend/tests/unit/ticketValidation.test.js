@@ -227,7 +227,7 @@ describe('ticketValidation schemas', () => {
       [{ limit: '0' }, 'limit'],
       [{ limit: '101' }, 'limit'],
       [{ status: 'INVALID' }, 'status'],
-      [{ priority: 'URGENT' }, 'priority'],
+      [{ priority: 'INVALID' }, 'priority'],
       [{ assignedTo: 'bad-uuid' }, 'assignedTo'],
       [{ sortBy: 'random' }, 'sortBy'],
       [{ order: 'sideways' }, 'order'],

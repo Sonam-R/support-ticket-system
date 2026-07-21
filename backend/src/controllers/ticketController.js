@@ -17,7 +17,7 @@ const getTicketById = async (req, res) => {
 };
 
 const updateTicket = async (req, res) => {
-  const ticket = await ticketService.updateTicket(req.params.id, req.body);
+  const ticket = await ticketService.updateTicket(req.params.id, req.body, req.user.id);
   sendSuccess(res, ticket);
 };
 
@@ -25,6 +25,7 @@ const changeTicketStatus = async (req, res) => {
   const ticket = await ticketService.changeTicketStatus(
     req.params.id,
     req.body.status,
+    req.user.id,
   );
   sendSuccess(res, ticket);
 };

@@ -29,7 +29,7 @@ A production-style support ticket system with:
 - JWT authentication and RBAC (Admin, Support Agent, Viewer)
 - Search, advanced filtering, sorting, and pagination
 - Swagger/OpenAPI documentation
-- 238 automated tests with ~96% backend statement coverage
+- 236 automated tests with ~96% backend statement coverage
 - Containerized deployment via Docker Compose
 
 ## Setup Summary
@@ -50,7 +50,7 @@ Login with seed credentials (e.g. `william.carter@supportdesk.com` / `Password12
 
 | Check | Command | Expected |
 |-------|---------|----------|
-| Backend tests | `npm test` | 223 passed |
+| Backend tests | `npm test` | 221 passed |
 | Frontend tests | `npm run test:frontend` | 15 passed |
 | Build | `npm run build` | Success |
 | API docs | http://localhost:5001/api/docs | Swagger UI loads |

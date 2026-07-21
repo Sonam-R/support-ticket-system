@@ -6,7 +6,6 @@ const createCommentSchema = z.object({
   }),
   body: z.object({
     message: z.string().min(1, 'Message is required'),
-    userId: z.string().uuid('Invalid userId'),
   }),
 });
 

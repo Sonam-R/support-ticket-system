@@ -77,7 +77,7 @@
 
 ## Tests
 
-- [x] Backend tests pass: `npm test` (223/223)
+- [x] Backend tests pass: `npm test` (221/221)
 - [x] Frontend tests pass: `npm run test:frontend` (15/15)
 - [x] Frontend builds: `npm run build`
 - [x] Backend builds: `npm run build:backend`

@@ -2,11 +2,13 @@ const { api, withAuth, createTicketViaApi } = require('../helpers');
 
 describe('Comment API', () => {
   let customer;
+  let agent;
   let token;
 
   beforeEach(() => {
     customer = global.getTestCustomer();
-    token = global.getTestCustomerToken();
+    agent = global.getTestAgent();
+    token = global.getTestAgentToken();
   });
 
   describe('POST /api/tickets/:ticketId/comments', () => {
@@ -18,7 +20,6 @@ describe('Comment API', () => {
         .post(`/api/tickets/${ticketId}/comments`)
         .send({
           message: 'Investigating the issue',
-          userId: customer.id,
         });
 
       expect(response.status).toBe(201);
@@ -26,7 +27,7 @@ describe('Comment API', () => {
       expect(response.body.data).toMatchObject({
         message: 'Investigating the issue',
         ticketId,
-        userId: customer.id,
+        userId: agent.id,
       });
     });
   });
@@ -40,7 +41,6 @@ describe('Comment API', () => {
         .post(`/api/tickets/${ticketId}/comments`)
         .send({
           message: 'First comment on ticket',
-          userId: customer.id,
         });
 
       const response = await api().get(`/api/tickets/${ticketId}/comments`);
@@ -58,7 +58,7 @@ describe('Comment API', () => {
     it('returns 400 for invalid ticket id format', async () => {
       const response = await withAuth(token)
         .post('/api/tickets/invalid-id/comments')
-        .send({ message: 'Test comment', userId: customer.id });
+        .send({ message: 'Test comment' });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);

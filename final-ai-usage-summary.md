@@ -34,7 +34,7 @@
 
 - **AI role:** Generated integration test suites for all API modules
 - **Human role:** Fixed DB setup race conditions, added edge-case tests, configured CI
-- **Result:** 238 tests, ~96% backend coverage
+- **Result:** 236 tests, ~96% backend coverage
 
 ### Documentation
 

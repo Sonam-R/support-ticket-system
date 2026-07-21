@@ -127,7 +127,7 @@ const getTicketById = async (id) => {
   return enrichWithAllowedTransitions(ticket);
 };
 
-const updateTicket = async (id, updateData) => {
+const updateTicket = async (id, updateData, performedById) => {
   const existingTicket = await ticketRepository.findById(id);
 
   if (!existingTicket) {
@@ -145,13 +145,13 @@ const updateTicket = async (id, updateData) => {
     existingTicket,
     updatedTicket,
     normalizedData,
-    existingTicket.createdById,
+    performedById,
   );
 
   return updatedTicket;
 };
 
-const changeTicketStatus = async (ticketId, newStatus) => {
+const changeTicketStatus = async (ticketId, newStatus, performedById) => {
   const existingTicket = await ticketRepository.findById(ticketId);
 
   if (!existingTicket) {
@@ -161,7 +161,7 @@ const changeTicketStatus = async (ticketId, newStatus) => {
   validateStatusTransition(existingTicket.status, newStatus);
 
   const updatedTicket = await ticketRepository.updateStatus(ticketId, newStatus);
-  await logStatusChanged(existingTicket, newStatus, existingTicket.createdById);
+  await logStatusChanged(existingTicket, newStatus, performedById);
 
   return enrichWithAllowedTransitions(updatedTicket);
 };

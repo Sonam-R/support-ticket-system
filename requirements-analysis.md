@@ -28,7 +28,7 @@
 
 | ID | Requirement | Implementation |
 |----|-------------|----------------|
-| FR-13 | Add comment | `POST /api/tickets/:ticketId/comments` (authenticated) |
+| FR-13 | Add comment | `POST /api/tickets/:ticketId/comments` (Admin, Support Agent) |
 | FR-14 | List comments | `GET /api/tickets/:ticketId/comments` |
 
 ### Users

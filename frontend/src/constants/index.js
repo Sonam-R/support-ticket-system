@@ -53,7 +53,7 @@ export const CATEGORY_LABELS = {
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
 
-export const TICKET_LIST_PRIORITY = ['LOW', 'MEDIUM', 'HIGH'];
+export const TICKET_LIST_PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
 export const SORT_FIELDS = [
   { value: 'createdAt', label: 'Created Date' },

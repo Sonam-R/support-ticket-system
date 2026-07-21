@@ -223,7 +223,11 @@ function TicketList() {
       ) : tickets.length === 0 ? (
         <div className="empty-message">
           <h3>No tickets found</h3>
-          <p>Try adjusting your search or filters, or create a new ticket.</p>
+          <p>
+            {canManageTickets(user)
+              ? 'Try adjusting your search or filters, or create a new ticket.'
+              : 'Try adjusting your search or filters.'}
+          </p>
           {canManageTickets(user) && (
             <button
               type="button"

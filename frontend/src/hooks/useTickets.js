@@ -114,18 +114,3 @@ export function useTickets() {
     getComments,
   };
 }
-
-export function extractUsersFromTickets(tickets) {
-  const userMap = new Map();
-
-  tickets.forEach((ticket) => {
-    if (ticket.createdBy) {
-      userMap.set(ticket.createdBy.id, ticket.createdBy);
-    }
-    if (ticket.assignedTo) {
-      userMap.set(ticket.assignedTo.id, ticket.assignedTo);
-    }
-  });
-
-  return Array.from(userMap.values());
-}
