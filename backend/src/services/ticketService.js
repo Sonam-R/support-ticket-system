@@ -21,8 +21,20 @@ const createTicket = async (ticketData) => {
   return ticketRepository.create(ticketData);
 };
 
-const getTickets = async ({ page, limit, status }) => {
-  const where = status ? { status } : {};
+const getTickets = async ({ page, limit, status, search }) => {
+  const where = {};
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
   const skip = (page - 1) * limit;
 
   const [tickets, total] = await Promise.all([
