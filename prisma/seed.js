@@ -2,7 +2,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const envPath = path.resolve(__dirname, '../.env');
+require('dotenv').config({ path: envPath });
 
 const prisma = new PrismaClient();
 const DEFAULT_PASSWORD = 'Password123';
