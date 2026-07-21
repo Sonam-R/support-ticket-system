@@ -128,10 +128,10 @@ describe('Ticket API', () => {
       );
     });
 
-    it('searches tickets by keyword', async () => {
+    it('searches tickets by title (case-insensitive, partial match)', async () => {
       await createTicketViaApi(customer.id, {
         title: 'Unique payment keyword ticket',
-        description: 'Contains payment keyword for search',
+        description: 'No match in description field',
       });
 
       const response = await api().get('/api/tickets?search=payment');
@@ -139,12 +139,52 @@ describe('Ticket API', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.tickets.length).toBeGreaterThan(0);
       expect(
-        response.body.data.tickets.some(
-          (ticket) =>
-            ticket.title.toLowerCase().includes('payment') ||
-            ticket.description.toLowerCase().includes('payment'),
+        response.body.data.tickets.every((ticket) =>
+          ticket.title.toLowerCase().includes('payment'),
         ),
       ).toBe(true);
+    });
+
+    it('does not match search keyword in description only', async () => {
+      const created = await createTicketViaApi(customer.id, {
+        title: 'Generic support request',
+        description: 'xyzonlydesc keyword hidden here',
+      });
+
+      const response = await api().get('/api/tickets?search=xyzonlydesc');
+
+      expect(response.status).toBe(200);
+      expect(
+        response.body.data.tickets.some((ticket) => ticket.id === created.body.data.id),
+      ).toBe(false);
+    });
+
+    it('combines title search with status filter', async () => {
+      await createTicketViaApi(customer.id, {
+        title: 'Open billing search ticket',
+        description: 'unrelated body text',
+      });
+
+      const response = await api().get('/api/tickets?status=OPEN&search=billing');
+
+      expect(response.status).toBe(200);
+      expect(
+        response.body.data.tickets.every(
+          (ticket) =>
+            ticket.status === 'OPEN' &&
+            ticket.title.toLowerCase().includes('billing'),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns all tickets when search is empty', async () => {
+      const allResponse = await api().get('/api/tickets?limit=100');
+      const searchResponse = await api().get('/api/tickets?limit=100&search=');
+
+      expect(searchResponse.status).toBe(200);
+      expect(searchResponse.body.data.pagination.total).toBe(
+        allResponse.body.data.pagination.total,
+      );
     });
   });
 

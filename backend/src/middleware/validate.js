@@ -18,6 +18,9 @@ const validate = (schema) => (req, res, next) => {
   if (result.data.params) {
     req.params = result.data.params;
   }
+  if (result.data.query) {
+    req.query = result.data.query;
+  }
 
   next();
 };

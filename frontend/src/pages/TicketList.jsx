@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTickets } from '../hooks/useTickets.js';
+import { useDebounce } from '../hooks/useDebounce.js';
 import TicketCard from '../components/TicketCard.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import { TICKET_STATUS } from '../constants/index.js';
 
 const STATUS_OPTIONS = ['ALL', ...TICKET_STATUS];
+const SEARCH_DEBOUNCE_MS = 400;
 
 function TicketList() {
   const navigate = useNavigate();
@@ -13,14 +15,9 @@ function TicketList() {
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebounce(search.trim(), SEARCH_DEBOUNCE_MS);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  useEffect(() => {
+  const filterParams = useMemo(() => {
     const params = {};
 
     if (status !== 'ALL') {
@@ -31,8 +28,12 @@ function TicketList() {
       params.search = debouncedSearch;
     }
 
-    fetchTickets(params);
-  }, [fetchTickets, status, debouncedSearch]);
+    return params;
+  }, [status, debouncedSearch]);
+
+  useEffect(() => {
+    fetchTickets(filterParams);
+  }, [fetchTickets, filterParams]);
 
   return (
     <div>
@@ -56,7 +57,7 @@ function TicketList() {
           <input
             id="search"
             type="search"
-            placeholder="Search tickets..."
+            placeholder="Search by title..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

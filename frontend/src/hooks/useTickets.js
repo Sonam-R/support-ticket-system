@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import * as ticketService from '../services/ticketService.js';
 import { DEFAULT_LIMIT } from '../constants/index.js';
 
@@ -7,8 +7,10 @@ export function useTickets() {
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const fetchRequestId = useRef(0);
 
   const fetchTickets = useCallback(async (params = {}) => {
+    const requestId = ++fetchRequestId.current;
     setLoading(true);
     setError(null);
 
@@ -17,14 +19,23 @@ export function useTickets() {
         limit: DEFAULT_LIMIT,
         ...params,
       });
+
+      if (requestId !== fetchRequestId.current) {
+        return data;
+      }
+
       setTickets(data.tickets);
       setPagination(data.pagination);
       return data;
     } catch (err) {
-      setError(err.message);
+      if (requestId === fetchRequestId.current) {
+        setError(err.message);
+      }
       throw err;
     } finally {
-      setLoading(false);
+      if (requestId === fetchRequestId.current) {
+        setLoading(false);
+      }
     }
   }, []);
 

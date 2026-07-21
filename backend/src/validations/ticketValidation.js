@@ -54,7 +54,11 @@ const getTicketsQuerySchema = z.object({
       .max(MAX_LIMIT, `Limit cannot exceed ${MAX_LIMIT}`)
       .default(DEFAULT_LIMIT),
     status: z.enum(TICKET_STATUS, { message: 'Invalid status value' }).optional(),
-    search: z.string().min(1, 'Search term cannot be empty').optional(),
+    search: z
+      .string()
+      .trim()
+      .transform((value) => value || undefined)
+      .optional(),
   }),
 });
 

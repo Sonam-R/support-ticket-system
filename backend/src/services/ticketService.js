@@ -22,19 +22,20 @@ const createTicket = async (ticketData) => {
 };
 
 const getTickets = async ({ page, limit, status, search }) => {
-  const where = {};
+  const conditions = [];
 
   if (status) {
-    where.status = status;
+    conditions.push({ status });
   }
 
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-    ];
+  const keyword = search?.trim();
+  if (keyword) {
+    conditions.push({
+      title: { contains: keyword, mode: 'insensitive' },
+    });
   }
 
+  const where = conditions.length > 0 ? { AND: conditions } : {};
   const skip = (page - 1) * limit;
 
   const [tickets, total] = await Promise.all([
