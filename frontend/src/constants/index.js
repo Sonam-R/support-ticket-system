@@ -35,4 +35,19 @@ export const CATEGORY_LABELS = {
 };
 
 export const DEFAULT_PAGE = 1;
-export const DEFAULT_LIMIT = 100;
+export const DEFAULT_LIMIT = 10;
+
+export const TICKET_LIST_PRIORITY = ['LOW', 'MEDIUM', 'HIGH'];
+
+export const SORT_FIELDS = [
+  { value: 'createdAt', label: 'Created Date' },
+  { value: 'updatedAt', label: 'Updated Date' },
+  { value: 'priority', label: 'Priority' },
+  { value: 'status', label: 'Status' },
+  { value: 'title', label: 'Title' },
+];
+
+export const SORT_ORDERS = [
+  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'Ascending' },
+];

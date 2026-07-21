@@ -21,27 +21,50 @@ const createTicket = async (ticketData) => {
   return ticketRepository.create(ticketData);
 };
 
-const getTickets = async ({ page, limit, status, search }) => {
+const getTickets = async ({
+  page,
+  limit,
+  status,
+  priority,
+  assignedTo,
+  search,
+  sortBy,
+  order,
+}) => {
   const conditions = [];
 
   if (status) {
     conditions.push({ status });
   }
 
+  if (priority) {
+    conditions.push({ priority });
+  }
+
+  if (assignedTo) {
+    conditions.push({ assignedToId: assignedTo });
+  }
+
   const keyword = search?.trim();
   if (keyword) {
     conditions.push({
-      title: { contains: keyword, mode: 'insensitive' },
+      OR: [
+        { title: { contains: keyword, mode: 'insensitive' } },
+        { description: { contains: keyword, mode: 'insensitive' } },
+      ],
     });
   }
 
   const where = conditions.length > 0 ? { AND: conditions } : {};
   const skip = (page - 1) * limit;
+  const orderBy = { [sortBy]: order };
 
   const [tickets, total] = await Promise.all([
-    ticketRepository.findAll({ where, skip, take: limit }),
+    ticketRepository.findAll({ where, skip, take: limit, orderBy }),
     ticketRepository.count(where),
   ]);
+
+  const totalPages = Math.ceil(total / limit) || 0;
 
   return {
     tickets,
@@ -49,7 +72,9 @@ const getTickets = async ({ page, limit, status, search }) => {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit) || 0,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
     },
   };
 };

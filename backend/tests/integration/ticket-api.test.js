@@ -1,4 +1,4 @@
-const { api, createTicketViaApi } = require('../helpers');
+const { api, createTicketViaApi, createTestAgent } = require('../helpers');
 
 describe('Ticket API', () => {
   let customer;
@@ -46,6 +46,8 @@ describe('Ticket API', () => {
         limit: expect.any(Number),
         total: expect.any(Number),
         totalPages: expect.any(Number),
+        hasNext: expect.any(Boolean),
+        hasPrevious: expect.any(Boolean),
       });
     });
 
@@ -145,7 +147,7 @@ describe('Ticket API', () => {
       ).toBe(true);
     });
 
-    it('does not match search keyword in description only', async () => {
+    it('matches search keyword in description', async () => {
       const created = await createTicketViaApi(customer.id, {
         title: 'Generic support request',
         description: 'xyzonlydesc keyword hidden here',
@@ -156,7 +158,7 @@ describe('Ticket API', () => {
       expect(response.status).toBe(200);
       expect(
         response.body.data.tickets.some((ticket) => ticket.id === created.body.data.id),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('combines title search with status filter', async () => {
@@ -185,6 +187,122 @@ describe('Ticket API', () => {
       expect(searchResponse.body.data.pagination.total).toBe(
         allResponse.body.data.pagination.total,
       );
+    });
+
+    it('filters tickets by priority', async () => {
+      await createTicketViaApi(customer.id, {
+        title: 'Low priority filter ticket',
+        description: 'Should match LOW priority filter',
+        priority: 'LOW',
+      });
+
+      const response = await api().get('/api/tickets?priority=LOW');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.tickets.every((ticket) => ticket.priority === 'LOW')).toBe(
+        true,
+      );
+    });
+
+    it('filters tickets by assignee', async () => {
+      const agent = await createTestAgent();
+      const created = await createTicketViaApi(customer.id, {
+        title: 'Assignee filter ticket',
+        description: 'Assigned to test agent',
+      });
+
+      await api()
+        .put(`/api/tickets/${created.body.data.id}`)
+        .send({ assignedToId: agent.id });
+
+      const response = await api().get(`/api/tickets?assignedTo=${agent.id}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.tickets.length).toBeGreaterThan(0);
+      expect(
+        response.body.data.tickets.every((ticket) => ticket.assignedTo?.id === agent.id),
+      ).toBe(true);
+    });
+
+    it('combines multiple filters together', async () => {
+      const agent = await createTestAgent();
+      const created = await createTicketViaApi(customer.id, {
+        title: 'Combined filter payment ticket',
+        description: 'Multi filter test body',
+        priority: 'HIGH',
+      });
+
+      await api()
+        .put(`/api/tickets/${created.body.data.id}`)
+        .send({ assignedToId: agent.id });
+
+      const response = await api().get(
+        `/api/tickets?status=OPEN&priority=HIGH&assignedTo=${agent.id}&search=payment`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(
+        response.body.data.tickets.some((ticket) => ticket.id === created.body.data.id),
+      ).toBe(true);
+      expect(
+        response.body.data.tickets.every(
+          (ticket) =>
+            ticket.status === 'OPEN' &&
+            ticket.priority === 'HIGH' &&
+            ticket.assignedTo?.id === agent.id &&
+            (ticket.title.toLowerCase().includes('payment') ||
+              ticket.description.toLowerCase().includes('payment')),
+        ),
+      ).toBe(true);
+    });
+
+    it('sorts tickets by title ascending', async () => {
+      await createTicketViaApi(customer.id, {
+        title: 'Zebra sort ticket',
+        description: 'Sort test',
+      });
+      await createTicketViaApi(customer.id, {
+        title: 'Alpha sort ticket',
+        description: 'Sort test',
+      });
+
+      const response = await api().get('/api/tickets?sortBy=title&order=asc&limit=100');
+
+      expect(response.status).toBe(200);
+      const titles = response.body.data.tickets.map((ticket) => ticket.title);
+      const sortedTitles = [...titles].sort((a, b) => a.localeCompare(b));
+      expect(titles).toEqual(sortedTitles);
+    });
+
+    it('includes hasNext and hasPrevious in pagination', async () => {
+      const response = await api().get('/api/tickets?page=1&limit=1');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.pagination).toMatchObject({
+        page: 1,
+        limit: 1,
+        hasPrevious: false,
+      });
+
+      if (response.body.data.pagination.totalPages > 1) {
+        expect(response.body.data.pagination.hasNext).toBe(true);
+      }
+    });
+
+    it('rejects invalid query parameters', async () => {
+      const invalidCases = [
+        '/api/tickets?page=-1',
+        '/api/tickets?limit=0',
+        '/api/tickets?priority=URGENT',
+        '/api/tickets?sortBy=random',
+        '/api/tickets?order=sideways',
+      ];
+
+      for (const url of invalidCases) {
+        const response = await api().get(url);
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+      }
     });
   });
 

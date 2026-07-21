@@ -37,12 +37,12 @@ const create = (data) => {
   });
 };
 
-const findAll = ({ where, skip, take }) => {
+const findAll = ({ where, skip, take, orderBy = { createdAt: 'desc' } }) => {
   return prisma.ticket.findMany({
     where,
     skip,
     take,
-    orderBy: { createdAt: 'desc' },
+    orderBy,
     include: {
       createdBy: {
         select: { id: true, name: true, email: true, role: true },

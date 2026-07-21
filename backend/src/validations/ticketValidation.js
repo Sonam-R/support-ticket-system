@@ -2,7 +2,10 @@ const { z } = require('zod');
 const {
   TICKET_STATUS,
   PRIORITY,
+  TICKET_LIST_PRIORITY,
   CATEGORY,
+  TICKET_SORT_FIELDS,
+  SORT_ORDER,
   DEFAULT_PAGE,
   DEFAULT_LIMIT,
   MAX_LIMIT,
@@ -54,11 +57,15 @@ const getTicketsQuerySchema = z.object({
       .max(MAX_LIMIT, `Limit cannot exceed ${MAX_LIMIT}`)
       .default(DEFAULT_LIMIT),
     status: z.enum(TICKET_STATUS, { message: 'Invalid status value' }).optional(),
+    priority: z.enum(TICKET_LIST_PRIORITY, { message: 'Invalid priority value' }).optional(),
+    assignedTo: z.string().uuid('Invalid assignedTo value').optional(),
     search: z
       .string()
       .trim()
       .transform((value) => value || undefined)
       .optional(),
+    sortBy: z.enum(TICKET_SORT_FIELDS, { message: 'Invalid sort field' }).default('createdAt'),
+    order: z.enum(SORT_ORDER, { message: 'Invalid sort order' }).default('desc'),
   }),
 });
 
