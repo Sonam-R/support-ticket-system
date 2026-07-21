@@ -14,6 +14,7 @@ const createSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   priority: z.string().min(1, 'Priority is required'),
   createdById: z.string().min(1, 'Created by is required'),
+  assignedTo: z.string().optional(),
 });
 
 const editSchema = z.object({
@@ -21,18 +22,21 @@ const editSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   category: z.string().min(1, 'Category is required'),
   priority: z.string().min(1, 'Priority is required'),
+  assignedTo: z.string().optional(),
 });
 
 function TicketForm({
   mode = 'create',
   initialData = {},
   users = [],
+  assignableUsers,
   onSubmit,
   onCancel,
   isSubmitting = false,
 }) {
   const isEdit = mode === 'edit';
   const schema = isEdit ? editSchema : createSchema;
+  const assignees = assignableUsers ?? users;
 
   const {
     register,
@@ -46,11 +50,22 @@ function TicketForm({
       category: initialData.category || '',
       priority: initialData.priority || 'MEDIUM',
       createdById: initialData.createdById || '',
+      assignedTo: initialData.assignedTo?.id || '',
     },
   });
 
+  function handleFormSubmit(data) {
+    const payload = { ...data };
+
+    if (payload.assignedTo === '') {
+      payload.assignedTo = null;
+    }
+
+    onSubmit(payload);
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="form-group">
         <label htmlFor="title">Title</label>
         <input
@@ -114,6 +129,18 @@ function TicketForm({
             <p className="field-error">{errors.priority.message}</p>
           )}
         </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="assignedTo">Assign To</label>
+        <select id="assignedTo" {...register('assignedTo')}>
+          <option value="">Unassigned</option>
+          {assignees.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name} ({user.role})
+            </option>
+          ))}
+        </select>
       </div>
 
       {!isEdit && (

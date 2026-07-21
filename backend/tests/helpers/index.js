@@ -1,6 +1,8 @@
 const request = require('supertest');
-const app = require('../src/app');
-const prisma = require('../src/config/prisma');
+const app = require('../../src/app');
+const prisma = require('../../src/config/prisma');
+
+const VALID_UUID = '00000000-0000-0000-0000-000000000001';
 
 async function cleanDatabase() {
   await prisma.comment.deleteMany();
@@ -53,6 +55,7 @@ async function changeTicketStatusViaApi(ticketId, status) {
 }
 
 module.exports = {
+  VALID_UUID,
   api,
   prisma,
   cleanDatabase,

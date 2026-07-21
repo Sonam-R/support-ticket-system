@@ -27,6 +27,27 @@ describe('Ticket API', () => {
         },
       });
     });
+
+    it('creates a ticket with an assignee', async () => {
+      const agent = global.getTestAgent();
+      const response = await api()
+        .post('/api/tickets')
+        .send({
+          title: 'Assigned ticket issue',
+          description: 'Ticket created with an assignee',
+          priority: 'HIGH',
+          category: 'BILLING',
+          createdById: customer.id,
+          assignedTo: agent.id,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.assignedTo).toMatchObject({
+        id: agent.id,
+        name: agent.name,
+        email: agent.email,
+      });
+    });
   });
 
   describe('GET /api/tickets', () => {
@@ -274,6 +295,15 @@ describe('Ticket API', () => {
       expect(titles).toEqual(sortedTitles);
     });
 
+    it('sorts tickets by title descending', async () => {
+      const response = await api().get('/api/tickets?sortBy=title&order=desc&limit=100');
+
+      expect(response.status).toBe(200);
+      const titles = response.body.data.tickets.map((ticket) => ticket.title);
+      const sortedTitles = [...titles].sort((a, b) => b.localeCompare(a));
+      expect(titles).toEqual(sortedTitles);
+    });
+
     it('includes hasNext and hasPrevious in pagination', async () => {
       const response = await api().get('/api/tickets?page=1&limit=1');
 
@@ -303,6 +333,24 @@ describe('Ticket API', () => {
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
       }
+    });
+  });
+
+  describe('DELETE /api/tickets/:id', () => {
+    it('deletes an existing ticket', async () => {
+      const createResponse = await createTicketViaApi(customer.id);
+      const ticketId = createResponse.body.data.id;
+
+      const deleteResponse = await api().delete(`/api/tickets/${ticketId}`);
+
+      expect(deleteResponse.status).toBe(200);
+      expect(deleteResponse.body).toEqual({
+        success: true,
+        data: { message: 'Ticket deleted successfully' },
+      });
+
+      const getResponse = await api().get(`/api/tickets/${ticketId}`);
+      expect(getResponse.status).toBe(404);
     });
   });
 

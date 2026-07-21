@@ -1,20 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
+import { useTickets } from '../hooks/useTickets.js';
+import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
 import TicketForm from '../components/TicketForm.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 
 function CreateTicket() {
   const navigate = useNavigate();
-  const { tickets, loading, error, fetchTickets, createTicket } = useTickets();
+  const { error, createTicket } = useTickets();
+  const { users, loading: usersLoading, error: usersError } = useUsers();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
-
-  const users = extractUsersFromTickets(tickets);
+  const assignableUsers = getAssignableUsers(users);
 
   async function handleSubmit(data) {
     setIsSubmitting(true);
@@ -30,7 +28,7 @@ function CreateTicket() {
     }
   }
 
-  if (loading && users.length === 0) {
+  if (usersLoading && users.length === 0) {
     return <p className="loading-message">Loading form...</p>;
   }
 
@@ -43,12 +41,13 @@ function CreateTicket() {
         </div>
       </div>
 
-      <ErrorMessage message={submitError || error} />
+      <ErrorMessage message={submitError || error || usersError} />
 
       <section className="panel">
         <TicketForm
           mode="create"
           users={users}
+          assignableUsers={assignableUsers}
           onSubmit={handleSubmit}
           onCancel={() => navigate('/tickets')}
           isSubmitting={isSubmitting}

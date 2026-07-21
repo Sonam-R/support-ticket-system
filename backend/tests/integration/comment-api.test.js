@@ -52,5 +52,14 @@ describe('Comment API', () => {
         ticketId,
       });
     });
+
+    it('returns 400 for invalid ticket id format', async () => {
+      const response = await api()
+        .post('/api/tickets/invalid-id/comments')
+        .send({ message: 'Test comment', userId: customer.id });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    });
   });
 });

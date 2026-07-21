@@ -18,16 +18,16 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      name: 'Alex Johnson',
-      email: 'alex.johnson@supportdesk.com',
+      name: 'William Carter',
+      email: 'william.carter@supportdesk.com',
       role: 'ADMIN',
     },
   });
 
-  const emily = await prisma.user.create({
+  const emma = await prisma.user.create({
     data: {
-      name: 'Emily Watson',
-      email: 'emily.watson@supportdesk.com',
+      name: 'Emma Johnson',
+      email: 'emma.johnson@supportdesk.com',
       role: 'AGENT',
     },
   });
@@ -50,16 +50,16 @@ async function main() {
 
   const olivia = await prisma.user.create({
     data: {
-      name: 'Olivia Taylor',
-      email: 'olivia.taylor@example.com',
+      name: 'Olivia Davis',
+      email: 'olivia.davis@example.com',
       role: 'CUSTOMER',
     },
   });
 
   const james = await prisma.user.create({
     data: {
-      name: 'James Anderson',
-      email: 'james.anderson@example.com',
+      name: 'James Wilson',
+      email: 'james.wilson@example.com',
       role: 'CUSTOMER',
     },
   });
@@ -89,7 +89,7 @@ async function main() {
       priority: 'HIGH',
       category: 'ACCOUNT',
       createdById: olivia.id,
-      assignedToId: emily.id,
+      assignedToId: emma.id,
     },
   });
 
@@ -128,7 +128,7 @@ async function main() {
       priority: 'LOW',
       category: 'ACCOUNT',
       createdById: william.id,
-      assignedToId: emily.id,
+      assignedToId: emma.id,
     },
   });
 
@@ -156,7 +156,7 @@ async function main() {
         message:
           'We are investigating the problem and will update you shortly.',
         ticketId: ticket1.id,
-        userId: emily.id,
+        userId: emma.id,
       },
       {
         message: 'The payment failed twice with different cards.',
@@ -233,7 +233,7 @@ async function main() {
         ticketId: ticket1.id,
         action: 'ASSIGNED',
         oldValue: null,
-        newValue: 'Emily Watson',
+        newValue: 'Emma Johnson',
       },
       {
         ticketId: ticket2.id,

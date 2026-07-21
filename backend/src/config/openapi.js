@@ -120,6 +120,7 @@ const openApiSpec = {
     { name: 'Health', description: 'Service health checks' },
     { name: 'Tickets', description: 'Ticket CRUD and status management' },
     { name: 'Comments', description: 'Ticket comment operations' },
+    { name: 'Users', description: 'User listing for assignment' },
   ],
   paths: {
     '/health': {
@@ -161,6 +162,7 @@ const openApiSpec = {
                 priority: 'HIGH',
                 category: 'BILLING',
                 createdById: EXAMPLE_CUSTOMER_ID,
+                assignedTo: EXAMPLE_AGENT_ID,
               },
             },
           },
@@ -314,7 +316,7 @@ const openApiSpec = {
               example: {
                 title: 'Payment declined — card verification required',
                 priority: 'URGENT',
-                assignedToId: EXAMPLE_AGENT_ID,
+                assignedTo: EXAMPLE_AGENT_ID,
               },
             },
           },
@@ -421,6 +423,29 @@ const openApiSpec = {
         },
       },
     },
+    '/api/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'List users',
+        description:
+          'Returns users for ticket assignment. Optionally filter by role (e.g. `AGENT`).',
+        operationId: 'getUsers',
+        parameters: [
+          {
+            name: 'role',
+            in: 'query',
+            schema: { type: 'string', enum: ['ADMIN', 'AGENT', 'CUSTOMER'] },
+            description: 'Filter users by role',
+            example: 'AGENT',
+          },
+        ],
+        responses: {
+          200: successResponse('#/components/schemas/UserList', [userExample]),
+          400: errorResponse('Validation failed', 'Invalid role value'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+    },
   },
   components: {
     parameters: {
@@ -475,6 +500,10 @@ const openApiSpec = {
           role: { type: 'string', enum: ['ADMIN', 'AGENT', 'CUSTOMER'] },
         },
         required: ['id', 'name', 'email', 'role'],
+      },
+      UserList: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/UserSummary' },
       },
       TicketStatus: {
         type: 'string',
@@ -616,6 +645,12 @@ const openApiSpec = {
             format: 'uuid',
             description: 'UUID of the user creating the ticket',
           },
+          assignedTo: {
+            type: 'string',
+            format: 'uuid',
+            nullable: true,
+            description: 'Assignee user ID, or null/omitted for unassigned',
+          },
         },
       },
       UpdateTicketRequest: {
@@ -626,11 +661,17 @@ const openApiSpec = {
           description: { type: 'string', minLength: 1 },
           priority: { $ref: '#/components/schemas/Priority' },
           category: { $ref: '#/components/schemas/Category' },
-          assignedToId: {
+          assignedTo: {
             type: 'string',
             format: 'uuid',
             nullable: true,
             description: 'Assignee user ID, or null to unassign',
+          },
+          assignedToId: {
+            type: 'string',
+            format: 'uuid',
+            nullable: true,
+            description: 'Deprecated alias for assignedTo',
           },
         },
       },

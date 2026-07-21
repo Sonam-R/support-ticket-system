@@ -11,6 +11,11 @@ const {
   MAX_LIMIT,
 } = require('../constants');
 
+const assigneeSchema = z.preprocess(
+  (value) => (value === '' ? null : value),
+  z.string().uuid('Invalid assignedTo value').nullable().optional(),
+);
+
 const createTicketSchema = z.object({
   body: z.object({
     title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -18,6 +23,7 @@ const createTicketSchema = z.object({
     priority: z.enum(PRIORITY, { message: 'Invalid priority value' }).optional(),
     category: z.enum(CATEGORY, { message: 'Invalid category value' }),
     createdById: z.string().uuid('Invalid createdById'),
+    assignedTo: assigneeSchema,
   }),
 });
 
@@ -31,6 +37,7 @@ const updateTicketSchema = z.object({
       description: z.string().min(1, 'Description cannot be empty').optional(),
       priority: z.enum(PRIORITY, { message: 'Invalid priority value' }).optional(),
       category: z.enum(CATEGORY, { message: 'Invalid category value' }).optional(),
+      assignedTo: assigneeSchema,
       assignedToId: z.string().uuid('Invalid assignedToId').nullable().optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {

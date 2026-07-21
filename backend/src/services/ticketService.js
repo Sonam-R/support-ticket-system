@@ -11,14 +11,43 @@ const enrichWithAllowedTransitions = (ticket) => ({
   allowedTransitions: getAllowedTransitions(ticket.status),
 });
 
+const normalizeAssigneeFields = (data) => {
+  const normalized = { ...data };
+
+  if (Object.prototype.hasOwnProperty.call(normalized, 'assignedTo')) {
+    normalized.assignedToId =
+      normalized.assignedTo === null || normalized.assignedTo === undefined
+        ? null
+        : normalized.assignedTo;
+    delete normalized.assignedTo;
+  }
+
+  return normalized;
+};
+
+const validateAssignee = async (assignedToId) => {
+  if (assignedToId === null || assignedToId === undefined) {
+    return;
+  }
+
+  const assignee = await userRepository.findById(assignedToId);
+
+  if (!assignee) {
+    throw new AppError('Assigned user not found', 404);
+  }
+};
+
 const createTicket = async (ticketData) => {
-  const creator = await userRepository.findById(ticketData.createdById);
+  const normalizedData = normalizeAssigneeFields(ticketData);
+  const creator = await userRepository.findById(normalizedData.createdById);
 
   if (!creator) {
     throw new AppError('Creator user not found', 404);
   }
 
-  return ticketRepository.create(ticketData);
+  await validateAssignee(normalizedData.assignedToId);
+
+  return ticketRepository.create(normalizedData);
 };
 
 const getTickets = async ({
@@ -96,15 +125,13 @@ const updateTicket = async (id, updateData) => {
     throw new AppError('Ticket not found', 404);
   }
 
-  if (updateData.assignedToId) {
-    const assignee = await userRepository.findById(updateData.assignedToId);
+  const normalizedData = normalizeAssigneeFields(updateData);
 
-    if (!assignee) {
-      throw new AppError('Assigned user not found', 404);
-    }
+  if (Object.prototype.hasOwnProperty.call(normalizedData, 'assignedToId')) {
+    await validateAssignee(normalizedData.assignedToId);
   }
 
-  return ticketRepository.update(id, updateData);
+  return ticketRepository.update(id, normalizedData);
 };
 
 const changeTicketStatus = async (ticketId, newStatus) => {

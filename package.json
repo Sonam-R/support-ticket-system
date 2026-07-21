@@ -16,7 +16,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "npx prisma db seed",
-    "test": "npm test --prefix backend"
+    "test": "npm test --prefix backend",
+    "test:coverage": "npm run test:coverage --prefix backend"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

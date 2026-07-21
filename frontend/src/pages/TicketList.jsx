@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
+import { useTickets } from '../hooks/useTickets.js';
+import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
 import { useDebounce } from '../hooks/useDebounce.js';
-import * as ticketService from '../services/ticketService.js';
 import TicketCard from '../components/TicketCard.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import {
@@ -21,6 +21,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 function TicketList() {
   const navigate = useNavigate();
   const { tickets, pagination, loading, error, fetchTickets } = useTickets();
+  const { users } = useUsers();
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
@@ -29,21 +30,10 @@ function TicketList() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [order, setOrder] = useState('desc');
   const [page, setPage] = useState(DEFAULT_PAGE);
-  const [assigneeUsers, setAssigneeUsers] = useState([]);
+
+  const assigneeUsers = getAssignableUsers(users);
 
   const debouncedSearch = useDebounce(search.trim(), SEARCH_DEBOUNCE_MS);
-
-  useEffect(() => {
-    ticketService
-      .getTickets({ limit: 100 })
-      .then((data) => {
-        const users = extractUsersFromTickets(data.tickets)
-          .filter((user) => user.role === 'AGENT' || user.role === 'ADMIN')
-          .sort((a, b) => a.name.localeCompare(b.name));
-        setAssigneeUsers(users);
-      })
-      .catch(() => {});
-  }, []);
 
   const resetPage = () => setPage(DEFAULT_PAGE);
 

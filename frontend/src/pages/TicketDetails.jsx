@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as ticketService from '../services/ticketService.js';
 import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
+import { useUsers, getAssignableUsers } from '../hooks/useUsers.js';
 import StatusActions from '../components/StatusActions.jsx';
 import CommentSection from '../components/CommentSection.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
@@ -18,6 +19,9 @@ function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { tickets, fetchTickets, addComment, updateTicket } = useTickets();
+  const { users: allUsers } = useUsers();
+
+  const assignableUsers = getAssignableUsers(allUsers);
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -144,7 +148,15 @@ function TicketDetails() {
           </div>
           <div className="detail-field">
             <label>Assigned User</label>
-            <p>{ticket.assignedTo?.name || 'Unassigned'}</p>
+            {ticket.assignedTo ? (
+              <>
+                <p>{ticket.assignedTo.name}</p>
+                <p className="page-subtitle">{ticket.assignedTo.email}</p>
+                <p className="page-subtitle">{ticket.assignedTo.role}</p>
+              </>
+            ) : (
+              <p>Unassigned</p>
+            )}
           </div>
           <div className="detail-field">
             <label>Category</label>
@@ -177,6 +189,7 @@ function TicketDetails() {
             <TicketForm
               mode="edit"
               initialData={ticket}
+              users={assignableUsers}
               onSubmit={handleUpdate}
               onCancel={() => setIsEditing(false)}
               isSubmitting={isUpdating}

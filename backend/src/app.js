@@ -5,6 +5,7 @@ const morgan = require('morgan');
 
 const ticketRoutes = require('./routes/ticketRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const userRoutes = require('./routes/userRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const { swaggerServe, swaggerSetup } = require('./config/swagger');
 
@@ -37,6 +38,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/tickets/:ticketId/comments', commentRoutes);
+app.use('/api/users', userRoutes);
 
 app.use(errorHandler);
 
