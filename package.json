@@ -1,0 +1,48 @@
+{
+  "name": "support-ticket-system",
+  "version": "1.0.0",
+  "private": true,
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev:backend": "node backend/src/server.js",
+    "dev:frontend": "vite --config frontend/vite.config.js",
+    "build": "vite build --config frontend/vite.config.js",
+    "preview": "vite preview --config frontend/vite.config.js",
+    "lint": "eslint frontend/src",
+    "format": "prettier --write \"frontend/src/**/*.{js,jsx}\" \"backend/src/**/*.js\"",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "npx prisma db seed"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
+    "@prisma/client": "^6.19.3",
+    "@tailwindcss/vite": "^4.1.8",
+    "axios": "^1.9.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "prisma": "^6.19.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.56.4",
+    "react-router-dom": "^7.6.1",
+    "tailwindcss": "^4.1.8",
+    "zod": "^3.25.42"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "eslint": "^9.27.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.1.0",
+    "prettier": "^3.5.3",
+    "vite": "^6.3.5"
+  }
+}
