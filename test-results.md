@@ -1,110 +1,79 @@
 # Test Results
 
-**Execution date:** Tuesday, July 21, 2026
+**Execution date:** July 21, 2026
 
-**Command:**
+## Summary
 
-```bash
-npm test
-```
+| Suite | Command | Result |
+|-------|---------|--------|
+| Backend | `npm test` | **223 passed** (16 suites) |
+| Frontend | `npm run test:frontend` | **15 passed** (2 suites) |
+| **Total** | | **238 passed, 0 failed** |
 
-(from project root, runs `jest` in `backend/`)
+**Duration:** ~10s backend, ~3.5s frontend
 
-**Test database:** `postgresql://sonam@localhost:5432/support_ticket_test` (separate from development DB)
+## Backend Test Suites
 
-**Result:** 4 test suites, 26 tests — all passed
+| Suite | Tests | Status |
+|-------|-------|--------|
+| auth-api.test.js | Login, logout, me, invalid creds | PASS |
+| authorization.test.js | RBAC on all protected routes | PASS |
+| ticket-api.test.js | CRUD, pagination, search, filter, sort | PASS |
+| comment-api.test.js | Create and list comments | PASS |
+| status-transition.test.js | Valid and invalid transitions | PASS |
+| ticket-history.test.js | History on create, update, assign, status | PASS |
+| user-api.test.js | User CRUD, search, soft delete | PASS |
+| validation.test.js | Field validation errors | PASS |
+| edge-cases.test.js | Boundary conditions | PASS |
+| error-handling.test.js | Prisma error mapping | PASS |
+| swagger.test.js | OpenAPI endpoint | PASS |
+| ticketValidation.test.js (unit) | Zod schemas | PASS |
+| commentValidation.test.js (unit) | Zod schemas | PASS |
+| userValidation.test.js (unit) | Zod schemas | PASS |
+| ticketService.test.js (unit) | Service logic | PASS |
+| statusTransitionService.test.js (unit) | State machine | PASS |
 
----
+## Frontend Test Suites
 
-## Ticket API (`ticket-api.test.js`)
+| Suite | Tests | Status |
+|-------|-------|--------|
+| auth.test.jsx | Login, ProtectedRoute, AuthContext | PASS |
+| rbac.test.jsx | Role-based nav and action visibility | PASS |
 
-| Test | Result |
-|------|--------|
-| POST /api/tickets — creates ticket with valid payload | PASS |
-| GET /api/tickets — returns tickets with correct structure | PASS |
-| GET /api/tickets — pagination works | PASS |
-| GET /api/tickets/:id — includes creator, assignee, comments | PASS |
-| PUT /api/tickets/:id — updates title, description, priority, assignedToId | PASS |
-| GET /api/tickets?status=OPEN — status filter | PASS |
-| GET /api/tickets?search=payment — keyword search | PASS |
-| GET /api/tickets/:id — 404 for non-existent ticket | PASS |
+## Coverage (Backend)
 
----
+Command: `npm run test:coverage`
 
-## Comment API (`comment-api.test.js`)
+| Metric | Coverage |
+|--------|----------|
+| Statements | 95.85% (532/555) |
+| Branches | 81.01% (128/158) |
+| Functions | 94.5% (86/91) |
+| Lines | 95.97% (525/547) |
 
-| Test | Result |
-|------|--------|
-| POST /api/tickets/:ticketId/comments — creates comment (201) | PASS |
-| GET /api/tickets/:ticketId/comments — lists comments | PASS |
+Key files at 100%: `statusTransitionService.js`, `ticketService.js`, all validation schemas.
 
----
+## Test Database
 
-## State Machine (`status-transition.test.js`)
+- URL: `postgresql://...@localhost:5432/support_ticket_test` (from `.env.test`)
+- Isolated from development database
+- Schema synced via `globalSetup.js`; tables truncated between tests
 
-### Valid transitions
+## Known Limitations
 
-| Transition | Result |
-|------------|--------|
-| OPEN → IN_PROGRESS | PASS |
-| IN_PROGRESS → RESOLVED | PASS |
-| RESOLVED → CLOSED | PASS |
-| OPEN → CANCELLED | PASS |
-| IN_PROGRESS → CANCELLED | PASS |
+- Frontend tests cover auth/RBAC only — no component tests for ticket forms or lists
+- No E2E browser tests
+- `act(...)` warning in rbac.test.jsx (non-blocking, tests pass)
+- Coverage does not include frontend (Vitest coverage not configured)
 
-### Rejected correctly (400)
+## Build Verification
 
-| Transition | Result |
-|------------|--------|
-| OPEN → CLOSED | PASS |
-| OPEN → RESOLVED | PASS |
-| IN_PROGRESS → CLOSED | PASS |
-| RESOLVED → OPEN | PASS |
-| RESOLVED → CANCELLED | PASS |
-| CLOSED → OPEN | PASS |
-| CANCELLED → OPEN | PASS |
+| Command | Result |
+|---------|--------|
+| `npm run build` | Frontend builds successfully |
+| `npm run build:backend` | Prisma generates; app loads |
+| `npm run lint` | No ESLint errors |
 
----
+## CI Status
 
-## Validation (`validation.test.js`)
-
-| Test | Result |
-|------|--------|
-| Missing title — 400 | PASS |
-| Missing description — 400 | PASS |
-| Invalid priority — 400 | PASS |
-| Invalid status (UNKNOWN) — 400 | PASS |
-
----
-
-## Debugging Performed
-
-1. **Parallel test DB setup race:** Initial runs failed when multiple Jest workers called `prisma db push` concurrently (`P2002` on `datname`). Fixed by adding `globalSetup.js` for one-time schema sync and `maxWorkers: 1`.
-
-2. **Prisma config env loading:** `prisma.config.ts` loads root `.env` by default. `globalSetup` and `setup-env.js` explicitly load `.env.test` and pass `DATABASE_URL` for test isolation.
-
-3. **Search filter:** Added optional `search` query parameter to ticket list API (required by spec) with case-insensitive title/description matching.
-
----
-
-## Files Added / Modified
-
-**New:**
-
-- `backend/jest.config.js`
-- `backend/package.json`
-- `backend/tests/setup-env.js`
-- `backend/tests/setup.js`
-- `backend/tests/globalSetup.js`
-- `backend/tests/helpers.js`
-- `backend/tests/integration/ticket-api.test.js`
-- `backend/tests/integration/comment-api.test.js`
-- `backend/tests/integration/status-transition.test.js`
-- `backend/tests/integration/validation.test.js`
-- `.env.test`
-
-**Modified:**
-
-- `package.json` — added `test` script and devDependencies (`jest`, `supertest`)
-- `backend/src/validations/ticketValidation.js` — added `search` query param
-- `backend/src/services/ticketService.js` — added keyword search filter
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs all tests and builds on push/PR to `main`.

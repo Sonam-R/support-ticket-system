@@ -1,60 +1,24 @@
 # Cursor Workflow
 
-## Purpose
+Index of Cursor AI workflow documentation for this project.
 
-Document how Cursor AI was used for this project.
+| Document | Description |
+|----------|-------------|
+| [project-rules.md](./project-rules.md) | Constraints, security, and modification rules |
+| [reusable-prompts.md](./reusable-prompts.md) | Effective prompt templates |
+| [development-workflow.md](./development-workflow.md) | Phased development process |
+| [coding-guidelines.md](./coding-guidelines.md) | Code style and patterns |
+| [cursor-best-practices.md](./cursor-best-practices.md) | AI collaboration lessons learned |
 
-## Setup
+## Quick Start
 
-- Opened project in Cursor IDE
-- Used Agent mode for multi-file implementation
-- Referenced `docs/AI_CONTEXT.md` for continuity across sessions
+1. Read `project-rules.md` for constraints
+2. Use prompts from `reusable-prompts.md`
+3. Follow phases in `development-workflow.md`
+4. Match patterns in `coding-guidelines.md`
+5. Apply lessons from `cursor-best-practices.md`
 
-## Workflow
+## Related
 
-### 1. Context Loading
-
-- Opened relevant files (schema, routes, existing components)
-- Used `@docs/AI_CONTEXT.md` in prompts for backend context
-
-### 2. Step-by-Step Implementation
-
-Each assignment step was a focused prompt:
-- Step 2: Database schema
-- Step 3: Express API
-- Steps 4–6: Comments, state machine, tests
-- Step 7: Frontend polish and documentation
-
-### 3. Code Review Workflow
-
-- Asked Cursor to review changes against assignment spec
-- Used findings to create `review-fixes.md` and apply fixes
-- Ran `npm test` and `npm run build` after each major change
-
-### 4. Validation Approach
-
-```bash
-npm run dev:backend    # Manual API checks
-npm run dev:frontend   # UI walkthrough
-npm test               # Integration tests
-npm run build          # Compile check
-npm run lint           # ESLint
-```
-
-## Important Prompts
-
-1. "Build layered Express API with ticket CRUD and validation"
-2. "Implement status state machine with allowedTransitions"
-3. "Add Jest integration tests with separate test DB"
-4. "Build React UI with plain CSS, server-side search/filter"
-
-## Best Practices Followed
-
-- Reviewed all AI-generated code before accepting
-- Kept diffs minimal and focused
-- Rejected over-engineering (auth, GraphQL, UI libraries)
-- Documented prompts and decisions in `ai-prompts/`
-
-## Validation
-
-Final submission verified against acceptance-criteria.md checklist.
+- AI prompt history: [`../../ai-prompts/`](../../ai-prompts/)
+- AI usage summary: [`../../final-ai-usage-summary.md`](../../final-ai-usage-summary.md)
