@@ -9,8 +9,8 @@ datasource db {
 
 enum Role {
   ADMIN
-  AGENT
-  CUSTOMER
+  SUPPORT_AGENT
+  VIEWER
 }
 
 enum TicketStatus {
@@ -37,12 +37,13 @@ enum Category {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  email     String   @unique
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  email     String    @unique
+  role      Role      @default(VIEWER)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   createdTickets  Ticket[]        @relation("CreatedTickets")
   assignedTickets Ticket[]        @relation("AssignedTickets")

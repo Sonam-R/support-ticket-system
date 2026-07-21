@@ -3,6 +3,8 @@ const {
   PRIORITY,
   TICKET_LIST_PRIORITY,
   CATEGORY,
+  ROLE,
+  USER_SORT_FIELDS,
   TICKET_SORT_FIELDS,
   SORT_ORDER,
   DEFAULT_PAGE,
@@ -10,7 +12,7 @@ const {
   MAX_LIMIT,
 } = require('../constants');
 
-const EXAMPLE_CUSTOMER_ID = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
+const EXAMPLE_VIEWER_ID = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
 const EXAMPLE_AGENT_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 const EXAMPLE_TICKET_ID = '550e8400-e29b-41d4-a716-446655440000';
 const EXAMPLE_COMMENT_ID = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
@@ -69,7 +71,9 @@ const userExample = {
   id: EXAMPLE_AGENT_ID,
   name: 'Alex Rivera',
   email: 'alex.rivera@supportdesk.com',
-  role: 'AGENT',
+  role: 'SUPPORT_AGENT',
+  createdAt: '2026-07-21T10:30:00.000Z',
+  updatedAt: '2026-07-21T10:30:00.000Z',
 };
 
 const ticketExample = {
@@ -79,15 +83,15 @@ const ticketExample = {
   status: 'OPEN',
   priority: 'HIGH',
   category: 'BILLING',
-  createdById: EXAMPLE_CUSTOMER_ID,
+  createdById: EXAMPLE_VIEWER_ID,
   assignedToId: EXAMPLE_AGENT_ID,
   createdAt: '2026-07-21T10:30:00.000Z',
   updatedAt: '2026-07-21T10:30:00.000Z',
   createdBy: {
-    id: EXAMPLE_CUSTOMER_ID,
+    id: EXAMPLE_VIEWER_ID,
     name: 'Jordan Lee',
     email: 'jordan.lee@email.com',
-    role: 'CUSTOMER',
+    role: 'VIEWER',
   },
   assignedTo: userExample,
 };
@@ -135,7 +139,7 @@ const openApiSpec = {
     { name: 'Health', description: 'Service health checks' },
     { name: 'Tickets', description: 'Ticket CRUD and status management' },
     { name: 'Comments', description: 'Ticket comment operations' },
-    { name: 'Users', description: 'User listing for assignment' },
+    { name: 'Users', description: 'User management and assignment' },
   ],
   paths: {
     '/health': {
@@ -176,7 +180,7 @@ const openApiSpec = {
                 description: 'Customer unable to complete payment using saved card ending in 4242.',
                 priority: 'HIGH',
                 category: 'BILLING',
-                createdById: EXAMPLE_CUSTOMER_ID,
+                createdById: EXAMPLE_VIEWER_ID,
                 assignedTo: EXAMPLE_AGENT_ID,
               },
             },
@@ -457,20 +461,151 @@ const openApiSpec = {
         tags: ['Users'],
         summary: 'List users',
         description:
-          'Returns users for ticket assignment. Optionally filter by role (e.g. `AGENT`).',
+          'Returns a paginated list of active users. Supports search by name or email, sorting, and optional role filtering.',
         operationId: 'getUsers',
         parameters: [
           {
+            name: 'page',
+            in: 'query',
+            schema: { type: 'integer', minimum: 1, default: DEFAULT_PAGE },
+            description: 'Page number',
+            example: DEFAULT_PAGE,
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', minimum: 1, maximum: MAX_LIMIT, default: DEFAULT_LIMIT },
+            description: 'Items per page',
+            example: DEFAULT_LIMIT,
+          },
+          {
+            name: 'search',
+            in: 'query',
+            schema: { type: 'string' },
+            description: 'Search by name or email',
+            example: 'emma',
+          },
+          {
+            name: 'sortBy',
+            in: 'query',
+            schema: { type: 'string', enum: USER_SORT_FIELDS, default: 'name' },
+            description: 'Field to sort by',
+            example: 'name',
+          },
+          {
+            name: 'order',
+            in: 'query',
+            schema: { type: 'string', enum: SORT_ORDER, default: 'asc' },
+            description: 'Sort direction',
+            example: 'asc',
+          },
+          {
             name: 'role',
             in: 'query',
-            schema: { type: 'string', enum: ['ADMIN', 'AGENT', 'CUSTOMER'] },
+            schema: { type: 'string', enum: ROLE },
             description: 'Filter users by role',
-            example: 'AGENT',
+            example: 'SUPPORT_AGENT',
           },
         ],
         responses: {
-          200: successResponse('#/components/schemas/UserList', [userExample]),
+          200: successResponse('#/components/schemas/UserListResponse', {
+            users: [userExample],
+            pagination: {
+              page: 1,
+              limit: 10,
+              total: 1,
+              totalPages: 1,
+              hasNext: false,
+              hasPrevious: false,
+            },
+          }),
           400: errorResponse('Validation failed', 'Invalid role value'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+      post: {
+        tags: ['Users'],
+        summary: 'Create user',
+        description: 'Creates a new user with the specified name, email, and role.',
+        operationId: 'createUser',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CreateUserRequest' },
+              example: {
+                name: 'Emma Johnson',
+                email: 'emma@example.com',
+                role: 'SUPPORT_AGENT',
+              },
+            },
+          },
+        },
+        responses: {
+          201: successResponse('#/components/schemas/User', userExample),
+          400: errorResponse('Validation failed', 'Name is required'),
+          409: errorResponse('Duplicate email', 'A user with this email already exists'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+    },
+    '/api/users/{id}': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get user details',
+        description:
+          'Returns user information including ticket statistics (assigned and created ticket counts).',
+        operationId: 'getUserById',
+        parameters: [{ $ref: '#/components/parameters/UserId' }],
+        responses: {
+          200: successResponse('#/components/schemas/UserDetail', {
+            ...userExample,
+            stats: { assignedTickets: 3, createdTickets: 0 },
+          }),
+          400: errorResponse('Validation failed', 'Invalid user id'),
+          404: errorResponse('User not found', 'User not found'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+      patch: {
+        tags: ['Users'],
+        summary: 'Update user',
+        description: 'Updates one or more user fields. Email must remain unique.',
+        operationId: 'updateUser',
+        parameters: [{ $ref: '#/components/parameters/UserId' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/UpdateUserRequest' },
+              example: {
+                name: 'Emma Johnson',
+                role: 'ADMIN',
+              },
+            },
+          },
+        },
+        responses: {
+          200: successResponse('#/components/schemas/User', userExample),
+          400: errorResponse('Validation failed', 'Invalid user id'),
+          404: errorResponse('User not found', 'User not found'),
+          409: errorResponse('Duplicate email', 'A user with this email already exists'),
+          500: errorResponse('Internal server error', 'Internal server error'),
+        },
+      },
+      delete: {
+        tags: ['Users'],
+        summary: 'Delete user',
+        description:
+          'Soft-deletes a user. Assigned tickets are unassigned (`assignedTo = null`). Comments and ticket history are preserved.',
+        operationId: 'deleteUser',
+        parameters: [{ $ref: '#/components/parameters/UserId' }],
+        responses: {
+          200: successResponse('#/components/schemas/DeleteUserResponse', {
+            message: 'User deleted successfully',
+          }),
+          400: errorResponse('Validation failed', 'Invalid user id'),
+          404: errorResponse('User not found', 'User not found'),
           500: errorResponse('Internal server error', 'Internal server error'),
         },
       },
@@ -493,6 +628,14 @@ const openApiSpec = {
         schema: { type: 'string', format: 'uuid' },
         description: 'Ticket UUID',
         example: EXAMPLE_TICKET_ID,
+      },
+      UserId: {
+        name: 'id',
+        in: 'path',
+        required: true,
+        schema: { type: 'string', format: 'uuid' },
+        description: 'User UUID',
+        example: EXAMPLE_AGENT_ID,
       },
     },
     schemas: {
@@ -526,13 +669,77 @@ const openApiSpec = {
           id: { type: 'string', format: 'uuid' },
           name: { type: 'string' },
           email: { type: 'string', format: 'email' },
-          role: { type: 'string', enum: ['ADMIN', 'AGENT', 'CUSTOMER'] },
+          role: { type: 'string', enum: ROLE },
         },
         required: ['id', 'name', 'email', 'role'],
       },
-      UserList: {
-        type: 'array',
-        items: { $ref: '#/components/schemas/UserSummary' },
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          role: { type: 'string', enum: ROLE },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'],
+      },
+      UserStats: {
+        type: 'object',
+        properties: {
+          assignedTickets: { type: 'integer', minimum: 0 },
+          createdTickets: { type: 'integer', minimum: 0 },
+        },
+        required: ['assignedTickets', 'createdTickets'],
+      },
+      UserDetail: {
+        allOf: [
+          { $ref: '#/components/schemas/User' },
+          {
+            type: 'object',
+            properties: {
+              stats: { $ref: '#/components/schemas/UserStats' },
+            },
+            required: ['stats'],
+          },
+        ],
+      },
+      UserListResponse: {
+        type: 'object',
+        properties: {
+          users: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/User' },
+          },
+          pagination: { $ref: '#/components/schemas/Pagination' },
+        },
+        required: ['users', 'pagination'],
+      },
+      CreateUserRequest: {
+        type: 'object',
+        required: ['name', 'email', 'role'],
+        properties: {
+          name: { type: 'string', minLength: 1 },
+          email: { type: 'string', format: 'email' },
+          role: { type: 'string', enum: ROLE },
+        },
+      },
+      UpdateUserRequest: {
+        type: 'object',
+        minProperties: 1,
+        properties: {
+          name: { type: 'string', minLength: 1 },
+          email: { type: 'string', format: 'email' },
+          role: { type: 'string', enum: ROLE },
+        },
+      },
+      DeleteUserResponse: {
+        type: 'object',
+        properties: {
+          message: { type: 'string', example: 'User deleted successfully' },
+        },
+        required: ['message'],
       },
       TicketStatus: {
         type: 'string',

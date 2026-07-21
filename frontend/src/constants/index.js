@@ -4,6 +4,22 @@ export const PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
 export const CATEGORY = ['TECHNICAL', 'BILLING', 'ACCOUNT', 'GENERAL', 'OTHER'];
 
+export const ROLE = ['ADMIN', 'SUPPORT_AGENT', 'VIEWER'];
+
+export const ROLE_LABELS = {
+  ADMIN: 'Admin',
+  SUPPORT_AGENT: 'Support Agent',
+  VIEWER: 'Viewer',
+};
+
+export const USER_SORT_FIELDS = [
+  { value: 'name', label: 'Name' },
+  { value: 'email', label: 'Email' },
+  { value: 'role', label: 'Role' },
+  { value: 'createdAt', label: 'Created Date' },
+  { value: 'updatedAt', label: 'Updated Date' },
+];
+
 export const STATUS_LABELS = {
   OPEN: 'Open',
   IN_PROGRESS: 'In Progress',

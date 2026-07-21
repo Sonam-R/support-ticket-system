@@ -9,7 +9,7 @@ function CommentSection({ comments = [], users = [], onAddComment, isSubmitting 
 
   useEffect(() => {
     if (users.length > 0 && !selectedUserId) {
-      const agent = users.find((u) => u.role === 'AGENT') || users[0];
+      const agent = users.find((u) => u.role === 'SUPPORT_AGENT') || users[0];
       setSelectedUserId(agent.id);
     }
   }, [users, selectedUserId]);

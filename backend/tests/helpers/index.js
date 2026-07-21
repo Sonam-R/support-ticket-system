@@ -19,7 +19,7 @@ async function createTestUser(overrides = {}) {
     data: {
       name: overrides.name || 'Test User',
       email: overrides.email || `test-${uniqueId}@example.com`,
-      role: overrides.role || 'CUSTOMER',
+      role: overrides.role || 'VIEWER',
     },
   });
 }
@@ -27,7 +27,7 @@ async function createTestUser(overrides = {}) {
 async function createTestAgent() {
   return createTestUser({
     name: 'Test Agent',
-    role: 'AGENT',
+    role: 'SUPPORT_AGENT',
     email: `agent-${Date.now()}@example.com`,
   });
 }

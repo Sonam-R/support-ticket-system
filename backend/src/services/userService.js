@@ -1,11 +1,105 @@
+const AppError = require('../utils/AppError');
 const userRepository = require('../repositories/userRepository');
 
-const getUsers = async ({ role } = {}) => {
-  const where = role ? { role } : undefined;
+const ensureUserExists = async (id) => {
+  const user = await userRepository.findById(id);
 
-  return userRepository.findAll({ where });
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  return user;
+};
+
+const ensureUniqueEmail = async (email, excludeId) => {
+  const existingUser = await userRepository.findByEmail(email, { excludeId });
+
+  if (existingUser) {
+    throw new AppError('A user with this email already exists', 409);
+  }
+};
+
+const createUser = async ({ name, email, role }) => {
+  await ensureUniqueEmail(email);
+
+  return userRepository.create({
+    name,
+    email,
+    role,
+  });
+};
+
+const getUsers = async ({ page, limit, search, sortBy, order, role }) => {
+  const conditions = [];
+
+  if (role) {
+    conditions.push({ role });
+  }
+
+  const keyword = search?.trim();
+  if (keyword) {
+    conditions.push({
+      OR: [
+        { name: { contains: keyword, mode: 'insensitive' } },
+        { email: { contains: keyword, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  const where = conditions.length > 0 ? { AND: conditions } : {};
+  const skip = (page - 1) * limit;
+  const orderBy = { [sortBy]: order };
+
+  const [users, total] = await Promise.all([
+    userRepository.findAll({ where, skip, take: limit, orderBy }),
+    userRepository.count(where),
+  ]);
+
+  const totalPages = Math.ceil(total / limit) || 0;
+
+  return {
+    users,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+    },
+  };
+};
+
+const getUserById = async (id) => {
+  const user = await ensureUserExists(id);
+  const stats = await userRepository.getTicketStats(id);
+
+  return {
+    ...user,
+    stats,
+  };
+};
+
+const updateUser = async (id, updateData) => {
+  await ensureUserExists(id);
+
+  if (updateData.email) {
+    await ensureUniqueEmail(updateData.email, id);
+  }
+
+  return userRepository.update(id, updateData);
+};
+
+const deleteUser = async (id) => {
+  await ensureUserExists(id);
+  await userRepository.unassignTickets(id);
+  await userRepository.softDelete(id);
 };
 
 module.exports = {
+  createUser,
   getUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
 };

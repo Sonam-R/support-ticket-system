@@ -12,9 +12,10 @@ export function useUsers({ role, autoFetch = true } = {}) {
       setError(null);
 
       try {
-        const data = await userService.getUsers({ role, ...params });
-        setUsers(data);
-        return data;
+        const data = await userService.getUsers({ limit: 100, ...params, role });
+        const users = Array.isArray(data) ? data : data.users;
+        setUsers(users);
+        return users;
       } catch (err) {
         setError(err.message);
         throw err;
@@ -36,6 +37,6 @@ export function useUsers({ role, autoFetch = true } = {}) {
 
 export function getAssignableUsers(users) {
   return users
-    .filter((user) => user.role === 'AGENT' || user.role === 'ADMIN')
+    .filter((user) => user.role === 'SUPPORT_AGENT' || user.role === 'ADMIN')
     .sort((a, b) => a.name.localeCompare(b.name));
 }

@@ -21,6 +21,7 @@ describe('Swagger API documentation', () => {
         '/api/tickets/{ticketId}/history',
         '/api/tickets/{ticketId}/comments',
         '/api/users',
+        '/api/users/{id}',
       ]),
     );
   });
@@ -41,6 +42,16 @@ describe('Swagger API documentation', () => {
         'sortBy',
         'order',
       ]),
+    );
+  });
+
+  it('documents user list query parameters', () => {
+    const parameters = openApiSpec.paths['/api/users'].get.parameters.map(
+      (parameter) => parameter.name,
+    );
+
+    expect(parameters).toEqual(
+      expect.arrayContaining(['page', 'limit', 'search', 'sortBy', 'order', 'role']),
     );
   });
 });

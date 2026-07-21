@@ -28,7 +28,7 @@ async function main() {
     data: {
       name: 'Emma Johnson',
       email: 'emma.johnson@supportdesk.com',
-      role: 'AGENT',
+      role: 'SUPPORT_AGENT',
     },
   });
 
@@ -36,7 +36,7 @@ async function main() {
     data: {
       name: 'Michael Brown',
       email: 'michael.brown@supportdesk.com',
-      role: 'AGENT',
+      role: 'SUPPORT_AGENT',
     },
   });
 
@@ -44,7 +44,7 @@ async function main() {
     data: {
       name: 'David Miller',
       email: 'david.miller@supportdesk.com',
-      role: 'AGENT',
+      role: 'SUPPORT_AGENT',
     },
   });
 
@@ -52,7 +52,7 @@ async function main() {
     data: {
       name: 'Olivia Davis',
       email: 'olivia.davis@example.com',
-      role: 'CUSTOMER',
+      role: 'VIEWER',
     },
   });
 
@@ -60,7 +60,7 @@ async function main() {
     data: {
       name: 'James Wilson',
       email: 'james.wilson@example.com',
-      role: 'CUSTOMER',
+      role: 'VIEWER',
     },
   });
 
@@ -68,7 +68,7 @@ async function main() {
     data: {
       name: 'Sophia Martinez',
       email: 'sophia.martinez@example.com',
-      role: 'CUSTOMER',
+      role: 'VIEWER',
     },
   });
 
@@ -76,7 +76,7 @@ async function main() {
     data: {
       name: 'William Wilson',
       email: 'william.wilson@example.com',
-      role: 'CUSTOMER',
+      role: 'VIEWER',
     },
   });
 

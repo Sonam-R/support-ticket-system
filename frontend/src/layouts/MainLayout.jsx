@@ -1,8 +1,23 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 const navLinks = [
-  { to: '/tickets', label: 'Tickets' },
-  { to: '/tickets/create', label: 'Create Ticket' },
+  {
+    to: '/tickets',
+    label: 'Tickets',
+    isActive: (_, { pathname }) =>
+      pathname === '/tickets' ||
+      (pathname.startsWith('/tickets/') && pathname !== '/tickets/create'),
+  },
+  {
+    to: '/tickets/create',
+    label: 'Create Ticket',
+    isActive: (_, { pathname }) => pathname === '/tickets/create',
+  },
+  {
+    to: '/users',
+    label: 'Users',
+    isActive: (_, { pathname }) => pathname.startsWith('/users'),
+  },
 ];
 
 function MainLayout() {
@@ -16,6 +31,8 @@ function MainLayout() {
               <NavLink
                 key={link.to}
                 to={link.to}
+                end={link.end}
+                isActive={link.isActive}
                 className={({ isActive }) => (isActive ? 'active' : undefined)}
               >
                 {link.label}
