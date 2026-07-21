@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as ticketService from '../services/ticketService.js';
 import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
-import Loader from '../components/common/Loader.jsx';
-import Button from '../components/common/Button.jsx';
+import StatusActions from '../components/StatusActions.jsx';
+import CommentSection from '../components/CommentSection.jsx';
+import ErrorMessage from '../components/ErrorMessage.jsx';
+import TicketForm from '../components/TicketForm.jsx';
 import { formatDateTime } from '../utils/format.js';
-import { getStatusColor, getPriorityColor } from '../utils/colors.js';
+import { getStatusClass, getPriorityClass } from '../utils/colors.js';
 import {
   STATUS_LABELS,
-  STATUS_ACTION_LABELS,
   PRIORITY_LABELS,
   CATEGORY_LABELS,
 } from '../constants/index.js';
@@ -16,18 +17,18 @@ import {
 function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { tickets, fetchTickets, addComment } = useTickets();
+  const { tickets, fetchTickets, addComment, updateTicket } = useTickets();
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [commentMessage, setCommentMessage] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState('');
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [commentError, setCommentError] = useState(null);
   const [statusError, setStatusError] = useState(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
 
   useEffect(() => {
     fetchTickets();
@@ -54,35 +55,6 @@ function TicketDetails() {
 
   const users = extractUsersFromTickets(tickets);
 
-  useEffect(() => {
-    if (users.length > 0 && !selectedUserId) {
-      const agent = users.find((u) => u.role === 'AGENT') || users[0];
-      setSelectedUserId(agent.id);
-    }
-  }, [users, selectedUserId]);
-
-  async function handleAddComment(e) {
-    e.preventDefault();
-
-    if (!commentMessage.trim() || !selectedUserId) return;
-
-    setIsSubmittingComment(true);
-    setCommentError(null);
-
-    try {
-      const newComment = await addComment(id, {
-        message: commentMessage.trim(),
-        userId: selectedUserId,
-      });
-      setComments((prev) => [...prev, newComment]);
-      setCommentMessage('');
-    } catch (err) {
-      setCommentError(err.message);
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  }
-
   async function handleStatusChange(newStatus) {
     setIsChangingStatus(true);
     setStatusError(null);
@@ -97,207 +69,136 @@ function TicketDetails() {
     }
   }
 
-  if (loading) return <Loader message="Loading ticket details..." />;
+  async function handleAddComment(data) {
+    setIsSubmittingComment(true);
+
+    try {
+      const newComment = await addComment(id, data);
+      setComments((prev) => [...prev, newComment]);
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  }
+
+  async function handleUpdate(data) {
+    setIsUpdating(true);
+    setUpdateError(null);
+
+    try {
+      const updated = await updateTicket(id, data);
+      setTicket((prev) => ({ ...prev, ...updated }));
+      setIsEditing(false);
+    } catch (err) {
+      setUpdateError(err.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  if (loading) {
+    return <p className="loading-message">Loading ticket details...</p>;
+  }
 
   if (error || !ticket) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error || 'Ticket not found'}
-        </div>
-        <Button variant="secondary" onClick={() => navigate('/tickets')}>
+      <div>
+        <ErrorMessage message={error || 'Ticket not found'} />
+        <button type="button" className="btn btn-secondary" onClick={() => navigate('/tickets')}>
           Back to Tickets
-        </Button>
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link to="/tickets" className="hover:text-blue-600">
-          Tickets
-        </Link>
-        <span>/</span>
-        <span className="text-gray-900">{ticket.title}</span>
-      </div>
+    <div>
+      <nav className="breadcrumb">
+        <Link to="/tickets">Tickets</Link>
+        <span> / </span>
+        <span>{ticket.title}</span>
+      </nav>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <section className="panel">
+        <div className="ticket-header">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{ticket.title}</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="page-title">{ticket.title}</h1>
+            <p className="page-subtitle">
               Created {formatDateTime(ticket.createdAt)}
               {ticket.createdBy && ` by ${ticket.createdBy.name}`}
             </p>
           </div>
-          <div className="flex gap-2">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(ticket.status)}`}
-            >
+          <div className="ticket-badges">
+            <span className={getStatusClass(ticket.status)}>
               {STATUS_LABELS[ticket.status]}
             </span>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${getPriorityColor(ticket.priority)}`}
-            >
+            <span className={getPriorityClass(ticket.priority)}>
               {PRIORITY_LABELS[ticket.priority]}
             </span>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-              Category
-            </p>
-            <p className="mt-1 text-sm text-gray-900">
-              {CATEGORY_LABELS[ticket.category]}
-            </p>
+        <div className="detail-grid">
+          <div className="detail-field">
+            <label>Priority</label>
+            <p>{PRIORITY_LABELS[ticket.priority]}</p>
           </div>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-              Assigned To
-            </p>
-            <p className="mt-1 text-sm text-gray-900">
-              {ticket.assignedTo?.name || 'Unassigned'}
-            </p>
+          <div className="detail-field">
+            <label>Assigned User</label>
+            <p>{ticket.assignedTo?.name || 'Unassigned'}</p>
+          </div>
+          <div className="detail-field">
+            <label>Category</label>
+            <p>{CATEGORY_LABELS[ticket.category]}</p>
+          </div>
+          <div className="detail-field">
+            <label>Current Status</label>
+            <p>{STATUS_LABELS[ticket.status]}</p>
           </div>
         </div>
 
-        <div className="mt-6">
-          <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-            Description
-          </p>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-            {ticket.description}
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Ticket Status</h2>
-
-        <div className="mt-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-            Current Status
-          </p>
-          <p className="mt-1">
-            <span
-              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(ticket.status)}`}
-            >
-              {STATUS_LABELS[ticket.status]}
-            </span>
-          </p>
+        <div className="description-block">
+          <label>Description</label>
+          <p>{ticket.description}</p>
         </div>
 
-        {statusError && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {statusError}
-          </div>
-        )}
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setIsEditing((prev) => !prev)}
+          >
+            {isEditing ? 'Cancel Edit' : 'Edit Ticket'}
+          </button>
+        </div>
 
-        {ticket.allowedTransitions?.length > 0 && (
-          <div className="mt-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-              Available Actions
-            </p>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {ticket.allowedTransitions.map((status) => (
-                <Button
-                  key={status}
-                  variant={status === 'CANCELLED' ? 'secondary' : 'primary'}
-                  disabled={isChangingStatus}
-                  onClick={() => handleStatusChange(status)}
-                >
-                  {STATUS_ACTION_LABELS[status]}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Comments</h2>
-
-        {comments.length === 0 ? (
-          <p className="mt-4 text-sm text-gray-500">No comments yet.</p>
-        ) : (
-          <div className="mt-4 space-y-4">
-            {comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="rounded-lg border border-gray-100 bg-gray-50 p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-gray-900">
-                    {comment.user?.name || 'Unknown'}
-                    <span className="ml-2 text-xs font-normal text-gray-500">
-                      ({comment.user?.role})
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {formatDateTime(comment.createdAt)}
-                  </p>
-                </div>
-                <p className="mt-2 text-sm text-gray-700">{comment.message}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <form onSubmit={handleAddComment} className="mt-6 space-y-3">
-          {commentError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {commentError}
-            </div>
-          )}
-
-          {users.length > 0 && (
-            <div>
-              <label
-                htmlFor="commentUser"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Comment as
-              </label>
-              <select
-                id="commentUser"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              >
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.role})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="commentMessage"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              Add a comment
-            </label>
-            <textarea
-              id="commentMessage"
-              rows={3}
-              placeholder="Write a comment..."
-              value={commentMessage}
-              onChange={(e) => setCommentMessage(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        {isEditing && (
+          <div style={{ marginTop: '1.5rem' }}>
+            <ErrorMessage message={updateError} />
+            <TicketForm
+              mode="edit"
+              initialData={ticket}
+              onSubmit={handleUpdate}
+              onCancel={() => setIsEditing(false)}
+              isSubmitting={isUpdating}
             />
           </div>
+        )}
+      </section>
 
-          <Button type="submit" disabled={isSubmittingComment || !commentMessage.trim()}>
-            {isSubmittingComment ? 'Submitting...' : 'Submit'}
-          </Button>
-        </form>
-      </div>
+      <StatusActions
+        status={ticket.status}
+        allowedTransitions={ticket.allowedTransitions || []}
+        onStatusChange={handleStatusChange}
+        isChanging={isChangingStatus}
+        error={statusError}
+      />
+
+      <CommentSection
+        comments={comments}
+        users={users}
+        onAddComment={handleAddComment}
+        isSubmitting={isSubmittingComment}
+      />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTickets, extractUsersFromTickets } from '../hooks/useTickets.js';
-import TicketForm from '../components/tickets/TicketForm.jsx';
-import Loader from '../components/common/Loader.jsx';
+import TicketForm from '../components/TicketForm.jsx';
+import ErrorMessage from '../components/ErrorMessage.jsx';
 
 function CreateTicket() {
   const navigate = useNavigate();
@@ -31,25 +31,21 @@ function CreateTicket() {
   }
 
   if (loading && users.length === 0) {
-    return <Loader message="Loading form..." />;
+    return <p className="loading-message">Loading form...</p>;
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Create Ticket</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Submit a new support request
-        </p>
+    <div>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Create Ticket</h1>
+          <p className="page-subtitle">Submit a new support request</p>
+        </div>
       </div>
 
-      {(error || submitError) && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {submitError || error}
-        </div>
-      )}
+      <ErrorMessage message={submitError || error} />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <section className="panel">
         <TicketForm
           mode="create"
           users={users}
@@ -57,7 +53,7 @@ function CreateTicket() {
           onCancel={() => navigate('/tickets')}
           isSubmitting={isSubmitting}
         />
-      </div>
+      </section>
     </div>
   );
 }

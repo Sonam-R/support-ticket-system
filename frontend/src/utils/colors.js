@@ -1,22 +1,22 @@
-export function getStatusColor(status) {
-  const colors = {
-    OPEN: 'bg-blue-100 text-blue-800',
-    IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
-    RESOLVED: 'bg-green-100 text-green-800',
-    CLOSED: 'bg-gray-100 text-gray-800',
-    CANCELLED: 'bg-red-100 text-red-800',
+export function getStatusClass(status) {
+  const map = {
+    OPEN: 'badge badge-status-open',
+    IN_PROGRESS: 'badge badge-status-in-progress',
+    RESOLVED: 'badge badge-status-resolved',
+    CLOSED: 'badge badge-status-closed',
+    CANCELLED: 'badge badge-status-cancelled',
   };
 
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return map[status] || 'badge';
 }
 
-export function getPriorityColor(priority) {
-  const colors = {
-    LOW: 'bg-gray-100 text-gray-700',
-    MEDIUM: 'bg-blue-100 text-blue-700',
-    HIGH: 'bg-orange-100 text-orange-700',
-    URGENT: 'bg-red-100 text-red-700',
+export function getPriorityClass(priority) {
+  const map = {
+    LOW: 'badge badge-priority-low',
+    MEDIUM: 'badge badge-priority-medium',
+    HIGH: 'badge badge-priority-high',
+    URGENT: 'badge badge-priority-urgent',
   };
 
-  return colors[priority] || 'bg-gray-100 text-gray-700';
+  return map[priority] || 'badge';
 }
