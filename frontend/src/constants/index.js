@@ -1,4 +1,4 @@
-export const TICKET_STATUS = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+export const TICKET_STATUS = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'CANCELLED'];
 
 export const PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
@@ -9,6 +9,14 @@ export const STATUS_LABELS = {
   IN_PROGRESS: 'In Progress',
   RESOLVED: 'Resolved',
   CLOSED: 'Closed',
+  CANCELLED: 'Cancelled',
+};
+
+export const STATUS_ACTION_LABELS = {
+  IN_PROGRESS: 'Move to In Progress',
+  CANCELLED: 'Cancel Ticket',
+  RESOLVED: 'Resolve Ticket',
+  CLOSED: 'Close Ticket',
 };
 
 export const PRIORITY_LABELS = {

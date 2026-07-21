@@ -84,11 +84,20 @@ const remove = (id) => {
   return prisma.ticket.delete({ where: { id } });
 };
 
+const updateStatus = (ticketId, status) => {
+  return prisma.ticket.update({
+    where: { id: ticketId },
+    data: { status },
+    include: ticketInclude,
+  });
+};
+
 module.exports = {
   create,
   findAll,
   count,
   findById,
   update,
+  updateStatus,
   remove,
 };

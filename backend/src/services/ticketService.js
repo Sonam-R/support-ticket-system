@@ -1,6 +1,15 @@
 const AppError = require('../utils/AppError');
 const ticketRepository = require('../repositories/ticketRepository');
 const userRepository = require('../repositories/userRepository');
+const {
+  getAllowedTransitions,
+  validateStatusTransition,
+} = require('./statusTransitionService');
+
+const enrichWithAllowedTransitions = (ticket) => ({
+  ...ticket,
+  allowedTransitions: getAllowedTransitions(ticket.status),
+});
 
 const createTicket = async (ticketData) => {
   const creator = await userRepository.findById(ticketData.createdById);
@@ -39,7 +48,7 @@ const getTicketById = async (id) => {
     throw new AppError('Ticket not found', 404);
   }
 
-  return ticket;
+  return enrichWithAllowedTransitions(ticket);
 };
 
 const updateTicket = async (id, updateData) => {
@@ -60,6 +69,20 @@ const updateTicket = async (id, updateData) => {
   return ticketRepository.update(id, updateData);
 };
 
+const changeTicketStatus = async (ticketId, newStatus) => {
+  const existingTicket = await ticketRepository.findById(ticketId);
+
+  if (!existingTicket) {
+    throw new AppError('Ticket not found', 404);
+  }
+
+  validateStatusTransition(existingTicket.status, newStatus);
+
+  const updatedTicket = await ticketRepository.updateStatus(ticketId, newStatus);
+
+  return enrichWithAllowedTransitions(updatedTicket);
+};
+
 const deleteTicket = async (id) => {
   const existingTicket = await ticketRepository.findById(id);
 
@@ -75,5 +98,6 @@ module.exports = {
   getTickets,
   getTicketById,
   updateTicket,
+  changeTicketStatus,
   deleteTicket,
 };

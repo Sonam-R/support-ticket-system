@@ -21,6 +21,14 @@ const updateTicket = async (req, res) => {
   sendSuccess(res, ticket);
 };
 
+const changeTicketStatus = async (req, res) => {
+  const ticket = await ticketService.changeTicketStatus(
+    req.params.id,
+    req.body.status,
+  );
+  sendSuccess(res, ticket);
+};
+
 const deleteTicket = async (req, res) => {
   await ticketService.deleteTicket(req.params.id);
   sendSuccess(res, { message: 'Ticket deleted successfully' });
@@ -31,5 +39,6 @@ module.exports = {
   getTickets,
   getTicketById,
   updateTicket,
+  changeTicketStatus,
   deleteTicket,
 };

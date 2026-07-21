@@ -7,10 +7,8 @@ import Button from '../common/Button.jsx';
 import {
   CATEGORY,
   PRIORITY,
-  TICKET_STATUS,
   CATEGORY_LABELS,
   PRIORITY_LABELS,
-  STATUS_LABELS,
 } from '../../constants/index.js';
 
 const createSchema = z.object({
@@ -26,7 +24,6 @@ const editSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   category: z.string().min(1, 'Category is required'),
   priority: z.string().min(1, 'Priority is required'),
-  status: z.string().min(1, 'Status is required'),
 });
 
 function TicketForm({
@@ -51,7 +48,6 @@ function TicketForm({
       description: initialData.description || '',
       category: initialData.category || '',
       priority: initialData.priority || '',
-      status: initialData.status || '',
       createdById: initialData.createdById || '',
     },
   });
@@ -64,11 +60,6 @@ function TicketForm({
   const priorityOptions = PRIORITY.map((p) => ({
     value: p,
     label: PRIORITY_LABELS[p],
-  }));
-
-  const statusOptions = TICKET_STATUS.map((s) => ({
-    value: s,
-    label: STATUS_LABELS[s],
   }));
 
   const userOptions = users.map((user) => ({
@@ -122,14 +113,7 @@ function TicketForm({
         />
       </div>
 
-      {isEdit ? (
-        <Select
-          label="Status"
-          options={statusOptions}
-          error={errors.status?.message}
-          {...register('status')}
-        />
-      ) : (
+      {isEdit ? null : (
         <Select
           label="Created By"
           options={userOptions}

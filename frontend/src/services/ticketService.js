@@ -24,6 +24,11 @@ export async function updateTicket(id, data) {
   return unwrap(response);
 }
 
+export async function changeTicketStatus(id, status) {
+  const response = await api.patch(`/tickets/${id}/status`, { status });
+  return unwrap(response);
+}
+
 export async function deleteTicket(id) {
   const response = await api.delete(`/tickets/${id}`);
   return unwrap(response);

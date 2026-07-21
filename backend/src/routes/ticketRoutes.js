@@ -5,6 +5,7 @@ const validate = require('../middleware/validate');
 const {
   createTicketSchema,
   updateTicketSchema,
+  changeTicketStatusSchema,
   getTicketsQuerySchema,
   ticketIdParamSchema,
 } = require('../validations/ticketValidation');
@@ -25,6 +26,12 @@ router.put(
   '/:id',
   validate(updateTicketSchema),
   asyncHandler(ticketController.updateTicket),
+);
+
+router.patch(
+  '/:id/status',
+  validate(changeTicketStatusSchema),
+  asyncHandler(ticketController.changeTicketStatus),
 );
 
 router.delete(

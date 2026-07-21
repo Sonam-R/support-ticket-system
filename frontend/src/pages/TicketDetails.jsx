@@ -8,6 +8,7 @@ import { formatDateTime } from '../utils/format.js';
 import { getStatusColor, getPriorityColor } from '../utils/colors.js';
 import {
   STATUS_LABELS,
+  STATUS_ACTION_LABELS,
   PRIORITY_LABELS,
   CATEGORY_LABELS,
 } from '../constants/index.js';
@@ -25,6 +26,8 @@ function TicketDetails() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState(null);
+  const [statusError, setStatusError] = useState(null);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
 
   useEffect(() => {
     fetchTickets();
@@ -77,6 +80,20 @@ function TicketDetails() {
       setCommentError(err.message);
     } finally {
       setIsSubmittingComment(false);
+    }
+  }
+
+  async function handleStatusChange(newStatus) {
+    setIsChangingStatus(true);
+    setStatusError(null);
+
+    try {
+      const updatedTicket = await ticketService.changeTicketStatus(id, newStatus);
+      setTicket(updatedTicket);
+    } catch (err) {
+      setStatusError(err.message);
+    } finally {
+      setIsChangingStatus(false);
     }
   }
 
@@ -155,6 +172,49 @@ function TicketDetails() {
             {ticket.description}
           </p>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900">Ticket Status</h2>
+
+        <div className="mt-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+            Current Status
+          </p>
+          <p className="mt-1">
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(ticket.status)}`}
+            >
+              {STATUS_LABELS[ticket.status]}
+            </span>
+          </p>
+        </div>
+
+        {statusError && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {statusError}
+          </div>
+        )}
+
+        {ticket.allowedTransitions?.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+              Available Actions
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {ticket.allowedTransitions.map((status) => (
+                <Button
+                  key={status}
+                  variant={status === 'CANCELLED' ? 'secondary' : 'primary'}
+                  disabled={isChangingStatus}
+                  onClick={() => handleStatusChange(status)}
+                >
+                  {STATUS_ACTION_LABELS[status]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
